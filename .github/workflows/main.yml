@@ -76,7 +76,11 @@ jobs:
         run: |
           git config --global user.name "${{ github.repository_owner }}"
           git config --global user.email "${{ github.repository_owner }}@users.noreply.github.com"
-
+          
+      - name: Clean v2.txt (remove empty and comment lines)
+        run: |
+          grep -vE '^\s*$|^#' v2.txt > cleaned.txt && mv cleaned.txt v2.txt
+          
       - name: Commit and push v2.txt
         run: |
           git add v2.txt
