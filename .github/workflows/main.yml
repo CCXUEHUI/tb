@@ -2,7 +2,7 @@ name: sync-all-txt-to-v2
 
 on:
   schedule:
-    - cron: '0 0/2 * * * ?'  # 每 6 小时运行一次
+    - cron: '0 */1 * * *'  # 每 6 小时运行一次
   workflow_dispatch:
 
 jobs:
@@ -13,13 +13,25 @@ jobs:
       - name: Checkout your repository
         uses: actions/checkout@v4
 
-      - name: Clone source repository
+      - name: Clone source repository 1
         run: |
-          git clone https://github.com/major-118/subscriptions.git source_repo
+          git clone https://github.com/major-118/subscriptions.git repo1
 
-      - name: Merge all .txt files into v2.txt
+      - name: Clone source repository 2
         run: |
-          find source_repo -name "*.txt" -exec cat {} + > v2.txt
+          git clone https://github.com/CCXUEHUI/tb.git repo2
+
+      - name: Clear v2.txt before appending
+        run: |
+          echo "" > v2.txt
+
+      - name: Append all .txt files from repo1
+        run: |
+          find repo1 -name "*.txt" -exec cat {} + >> v2.txt
+
+      - name: Append all wd.md files from repo2
+        run: |
+          find repo2 -name "wd.md" -exec cat {} + >> v2.txt
 
       - name: Set Git identity
         run: |
@@ -29,5 +41,5 @@ jobs:
       - name: Commit and push v2.txt
         run: |
           git add v2.txt
-          git commit -m "Auto-sync v2.txt from major-118/subscriptions"
+          git commit -m "Auto-sync v2.txt from major-118 and major-11811"
           git push
