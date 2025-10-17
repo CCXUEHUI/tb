@@ -3,6 +3,8 @@ import json
 import base64
 import urllib.parse
 import requests
+import socket
+import time
 
 def extract_ip_port(config):
     try:
@@ -26,6 +28,14 @@ def get_city_cn(ip):
         pass
     return "未知"
 
+def test_tcp(ip, port):
+    try:
+        start = time.time()
+        with socket.create_connection((ip, port), timeout=3):
+            return round((time.time() - start) * 1000, 2)  # 毫秒
+    except:
+        return float('inf')
+
 def format_config(config, index, city):
     label = f"{str(index).zfill(2)}-{city}"
     if config.startswith("vmess://"):
@@ -42,17 +52,24 @@ def format_config(config, index, city):
         return f"{base}#{urllib.parse.quote(label)}"
 
 def main():
-    with open("v2.txt", "r", encoding="utf-8") as f:
+    with open("v2_raw.txt", "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
-    formatted = []
-    for i, config in enumerate(lines, 1):
+    results = []
+    for config in lines:
         ip, port = extract_ip_port(config)
-        city = get_city_cn(ip) if ip else "未知"
-        formatted.append(format_config(config, i, city))
+        if not ip or not port:
+            continue
+        delay = test_tcp(ip, port)
+        city = get_city_cn(ip)
+        results.append((delay, config, city))
+
+    # 排序并选出最快的前 20 个
+    top = sorted(results, key=lambda x: x[0])[:20]
 
     with open("v2.txt", "w", encoding="utf-8") as f:
-        f.write("\n".join(formatted))
+        for i, (delay, config, city) in enumerate(top, 1):
+            f.write(format_config(config, i, city) + "\n")
 
 if __name__ == "__main__":
     main()
