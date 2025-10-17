@@ -22,7 +22,7 @@ jobs:
           curl -fsSL wd.md >> v2.txt
           echo -e "\n" >> v2.txt
 
-      - name: Append content from dz1.txt links (with base64 detection)
+      - name: Append content from dz1.txt links (any file type, with base64 detection)
         run: |
           while IFS= read -r url; do
             [[ -z "$url" || "$url" =~ ^# ]] && continue
@@ -35,16 +35,17 @@ jobs:
             echo "Fetching: $raw_url"
             content=$(curl -fsSL "$raw_url")
 
-            # 判断是否为 base64（简单检测：是否只包含 base64 字符）
+            # 判断是否为 base64（仅包含 base64 字符）
             if echo "$content" | grep -qE '^[A-Za-z0-9+/=]+$'; then
               echo "$content" | base64 -d >> v2.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2.txt
             else
               echo "$content" >> v2.txt
             fi
+
             echo -e "\n" >> v2.txt
           done < dz1.txt
 
-      - name: Append content from dz2.txt GitHub repositories (with base64 detection)
+      - name: Append content from dz2.txt GitHub repositories (.txt/.md only, with base64 detection)
         run: |
           while IFS= read -r repo_url; do
             [[ -z "$repo_url" || "$repo_url" =~ ^# ]] && continue
@@ -55,7 +56,7 @@ jobs:
               repo="${BASH_REMATCH[2]}"
               api_url="https://api.github.com/repos/$user/$repo/git/trees/main?recursive=1"
 
-              files=$(curl -s "$api_url" | jq -r '.tree[] | select(.type=="blob") | .path' | grep -E '\.txt$|\.md$')
+              files=$(curl -s "$api_url" | jq -r '.tree[] | select(.type=="blob") | .path' | grep -Ei '\.txt$|\.md$')
               for file in $files; do
                 raw_url="https://raw.githubusercontent.com/$user/$repo/main/$file"
                 echo "Fetching file: $raw_url"
@@ -66,6 +67,7 @@ jobs:
                 else
                   echo "$content" >> v2.txt
                 fi
+
                 echo -e "\n" >> v2.txt
               done
             fi
@@ -79,5 +81,5 @@ jobs:
       - name: Commit and push v2.txt
         run: |
           git add v2.txt
-          git commit -m "Auto-sync v2.txt with decoded content from wd.md, dz1.txt, dz2.txt"
+          git commit -m "Auto-sync v2.txt from wd.md, dz1.txt (any type), dz2.txt (txt/md)"
           git push
