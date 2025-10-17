@@ -1,0 +1,26 @@
+name: sync_sub
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # 每 6 小时运行一次
+  workflow_dispatch:       # 允许手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Git identity
+        run: |
+          git config --global user.name "${{ github.repository_owner }}"
+          git config --global user.email "${{ github.repository_owner }}@users.noreply.github.com"
+
+      - name: Download subscription file
+        run: |
+          wget --output-document=v2.txt https://raw.githubusercontent.com/major-118/subscriptions/main/q67x82da0f27b1a8e9c4c2f7a913.txt
+
+      - name: Commit v2.txt to repository
+        run: 
