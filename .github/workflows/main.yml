@@ -84,7 +84,7 @@ jobs:
       - name: Format v2.txt with city names and numbering
         run: |
           pip install requests
-          python3 clean_and_format_v2.py
+          python3 tcp_speed_filter.py
           
       - name: Commit and push v2.txt
         run: |
