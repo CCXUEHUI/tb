@@ -13,25 +13,25 @@ jobs:
       - name: Checkout your repository
         uses: actions/checkout@v4
 
-      - name: Clone source repository 1
+      - name: wd.txt #本地稳定节点
         run: |
-          git clone https://github.com/major-118/subscriptions.git repo1
-
+          git clone https://github.com/CCXUEHUI/tb.git repo
+          
       - name: Clone source repository 2
         run: |
-          git clone https://github.com/CCXUEHUI/tb.git repo2
+          git clone https://github.com/major-118/subscriptions.git repo1
 
       - name: Clear v2.txt before appending
         run: |
           echo "" > v2.txt
 
-      - name: Append all .txt files from repo1
+      - name: wd.txt
+        run: |
+          find repo -name "wd.md" -exec cat {} + >> v2.txt
+
+      - name: Append all *.txt files from repo1
         run: |
           find repo1 -name "*.txt" -exec cat {} + >> v2.txt
-
-      - name: Append all wd.md files from repo2
-        run: |
-          find repo2 -name "wd.md" -exec cat {} + >> v2.txt
 
       - name: Set Git identity
         run: |
@@ -41,5 +41,5 @@ jobs:
       - name: Commit and push v2.txt
         run: |
           git add v2.txt
-          git commit -m "Auto-sync v2.txt from major-118 and major-11811"
+          git commit -m "Auto-sync v2.txt"
           git push
