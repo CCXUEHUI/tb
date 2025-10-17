@@ -1,1 +1,1 @@
-https://github.com/MrAbolfazlNorouzi/iran-configs/blob/main/configs/working-configs.txt
+https://raw.githubusercontent.com/MrAbolfazlNorouzi/iran-configs/refs/heads/main/configs/working-configs.txt
