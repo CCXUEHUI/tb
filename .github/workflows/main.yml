@@ -80,6 +80,11 @@ jobs:
       - name: Clean v2.txt (remove empty and comment lines)
         run: |
           grep -vE '^\s*$|^#' v2.txt > cleaned.txt && mv cleaned.txt v2.txt
+
+      - name: Format v2.txt with city names and numbering
+        run: |
+          pip install requests
+          python3 clean_and_format_v2.py
           
       - name: Commit and push v2.txt
         run: |
