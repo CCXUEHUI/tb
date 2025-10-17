@@ -23,7 +23,7 @@ jobs:
 
       - name: Clear v2.txt before appending
         run: |
-          echo "" > v2.txt
+          > v2.txt
 
       - name: wd.txt
         run: |
