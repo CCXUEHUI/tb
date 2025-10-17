@@ -2,7 +2,7 @@ name: sync-v2
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # 每 6 小时运行一次
+    - cron: '*/5 * * * *'  # 每 5 分钟运行一次
   workflow_dispatch:
 
 jobs:
