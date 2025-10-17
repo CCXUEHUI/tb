@@ -2,7 +2,7 @@ name: sync-all-txt-to-v2
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # 每 6 小时运行一次
+    - cron: '0 0/2 * * * ?'  # 每 6 小时运行一次
   workflow_dispatch:
 
 jobs:
