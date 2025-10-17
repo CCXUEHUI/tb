@@ -4,9 +4,6 @@ import base64
 import urllib.parse
 import requests
 
-def is_base64(s):
-    return re.fullmatch(r'[A-Za-z0-9+/=]+', s) is not None
-
 def extract_ip_port(config):
     try:
         if config.startswith("vmess://"):
@@ -20,9 +17,9 @@ def extract_ip_port(config):
         pass
     return None, None
 
-def get_city(ip):
+def get_city_cn(ip):
     try:
-        r = requests.get(f"http://ip-api.com/json/{ip}?fields=city", timeout=5)
+        r = requests.get(f"http://ip-api.com/json/{ip}?fields=city&lang=zh-CN", timeout=5)
         if r.status_code == 200:
             return r.json().get("city", "未知")
     except:
@@ -32,10 +29,13 @@ def get_city(ip):
 def format_config(config, index, city):
     label = f"{str(index).zfill(2)}-{city}"
     if config.startswith("vmess://"):
-        data = json.loads(base64.b64decode(config[8:] + '==').decode("utf-8"))
-        data["ps"] = label
-        new_json = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
-        return "vmess://" + base64.b64encode(new_json.encode("utf-8")).decode("utf-8")
+        try:
+            data = json.loads(base64.b64decode(config[8:] + '==').decode("utf-8"))
+            data["ps"] = label
+            new_json = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
+            return "vmess://" + base64.b64encode(new_json.encode("utf-8")).decode("utf-8")
+        except:
+            return config
     else:
         parts = config.split("#", 1)
         base = parts[0]
@@ -48,7 +48,7 @@ def main():
     formatted = []
     for i, config in enumerate(lines, 1):
         ip, port = extract_ip_port(config)
-        city = get_city(ip) if ip else "未知"
+        city = get_city_cn(ip) if ip else "未知"
         formatted.append(format_config(config, i, city))
 
     with open("v2.txt", "w", encoding="utf-8") as f:
