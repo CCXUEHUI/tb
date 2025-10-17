@@ -52,7 +52,7 @@ def format_config(config, index, city):
         return f"{base}#{urllib.parse.quote(label)}"
 
 def main():
-    with open("v2_raw.txt", "r", encoding="utf-8") as f:
+    with open("v2.txt", "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
     results = []
