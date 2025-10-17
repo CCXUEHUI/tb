@@ -17,9 +17,9 @@ jobs:
         run: |
           > v2.txt
 
-      - name: Append content from wd.md
+      - name: Append content from local wd.md
         run: |
-          curl -fsSL wd.md >> v2.txt
+          cat wd.md >> v2.txt
           echo -e "\n" >> v2.txt
 
       - name: Append content from dz1.txt links (any file type, with base64 detection)
@@ -35,7 +35,6 @@ jobs:
             echo "Fetching: $raw_url"
             content=$(curl -fsSL "$raw_url")
 
-            # 判断是否为 base64（仅包含 base64 字符）
             if echo "$content" | grep -qE '^[A-Za-z0-9+/=]+$'; then
               echo "$content" | base64 -d >> v2.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2.txt
             else
@@ -81,5 +80,5 @@ jobs:
       - name: Commit and push v2.txt
         run: |
           git add v2.txt
-          git commit -m "Auto-sync v2.txt from wd.md, dz1.txt (any type), dz2.txt (txt/md)"
+          git commit -m "Auto-sync v2.txt from wd.md, dz1.txt, dz2.txt"
           git push
