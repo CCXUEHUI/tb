@@ -1,26 +1,33 @@
-name: sync_sub
+name: sync-all-txt-to-v2
 
 on:
   schedule:
     - cron: '0 */6 * * *'  # 每 6 小时运行一次
-  workflow_dispatch:       # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout your repository
         uses: actions/checkout@v4
+
+      - name: Clone source repository
+        run: |
+          git clone https://github.com/major-118/subscriptions.git source_repo
+
+      - name: Merge all .txt files into v2.txt
+        run: |
+          find source_repo -name "*.txt" -exec cat {} + > v2.txt
 
       - name: Set Git identity
         run: |
           git config --global user.name "${{ github.repository_owner }}"
           git config --global user.email "${{ github.repository_owner }}@users.noreply.github.com"
 
-      - name: Download subscription file
+      - name: Commit and push v2.txt
         run: |
-          wget --output-document=v2.txt https://raw.githubusercontent.com/major-118/subscriptions/main/q67x82da0f27b1a8e9c4c2f7a913.txt
-
-      - name: Commit v2.txt to repository
-        run: 
+          git add v2.txt
+          git commit -m "Auto-sync v2.txt from major-118/subscriptions"
+          git push
