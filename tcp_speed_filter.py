@@ -3,7 +3,6 @@ import json
 import base64
 import urllib.parse
 import requests
-import socket
 import time
 
 def extract_ip_port(config):
@@ -28,13 +27,19 @@ def get_city_cn(ip):
         pass
     return "未知"
 
-def test_tcp(ip, port):
+def test_google_speed(proxy_url):
+    proxies = {
+        "http": proxy_url,
+        "https": proxy_url
+    }
     try:
         start = time.time()
-        with socket.create_connection((ip, port), timeout=3):
-            return round((time.time() - start) * 1000, 2)  # 毫秒
+        r = requests.get("https://www.google.com/generate_204", proxies=proxies, timeout=5)
+        if r.status_code == 204:
+            return round((time.time() - start) * 1000, 2)
     except:
-        return float('inf')
+        pass
+    return float('inf')
 
 def format_config(config, index, city):
     label = f"{str(index).zfill(2)}-{city}"
@@ -51,6 +56,25 @@ def format_config(config, index, city):
         base = parts[0]
         return f"{base}#{urllib.parse.quote(label)}"
 
+def build_proxy_url(config):
+    if config.startswith("vmess://"):
+        return None  # vmess 需特殊客户端支持，无法直接代理
+    elif config.startswith("vless://"):
+        return None  # 同上
+    elif config.startswith("trojan://"):
+        match = re.search(r'trojan://([^@]+)@([^:]+):(\d+)', config)
+        if match:
+            host = match.group(2)
+            port = match.group(3)
+            return f"http://{host}:{port}"
+    elif config.startswith("ss://"):
+        match = re.search(r'@([^:]+):(\d+)', config)
+        if match:
+            host = match.group(1)
+            port = match.group(2)
+            return f"http://{host}:{port}"
+    return None
+
 def main():
     with open("v2.txt", "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
@@ -60,11 +84,14 @@ def main():
         ip, port = extract_ip_port(config)
         if not ip or not port:
             continue
-        delay = test_tcp(ip, port)
         city = get_city_cn(ip)
+        proxy = build_proxy_url(config)
+        if proxy:
+            delay = test_google_speed(proxy)
+        else:
+            delay = float('inf')
         results.append((delay, config, city))
 
-    # 排序并选出最快的前 20 个
     top = sorted(results, key=lambda x: x[0])[:20]
 
     with open("v2.txt", "w", encoding="utf-8") as f:
