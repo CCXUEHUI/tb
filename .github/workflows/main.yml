@@ -81,6 +81,11 @@ jobs:
         run: |
           grep -vE '^\s*$|^#' v2.txt > cleaned.txt && mv cleaned.txt v2.txt
 
+      - name: Wait for 60 seconds before running Python
+        run: |
+          echo "等待 60 秒以确保网络稳定或资源准备完成..."
+          sleep 60
+
       - name: Format v2.txt with city names and numbering
         run: |
           pip install requests
