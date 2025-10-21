@@ -2,7 +2,7 @@ name: sync-v2
 
 on:
   schedule:
-    - cron: '* 0/5 * * *'  # 每 5 小时运行一次
+    - cron: '0 */6 * * *'  # 每 6 小时运行一次
   workflow_dispatch:
 
 jobs:
@@ -73,10 +73,10 @@ jobs:
             fi
           done < dz2.txt
 
-      - name: Sort and rename nodes by city name
+      - name: Install dependencies and run speed_sort.py
         run: |
           pip install requests
-          python3 sort_by_city.py
+          python3 speed_sort.py
 
       - name: Set Git identity
         run: |
