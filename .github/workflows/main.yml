@@ -2,7 +2,7 @@ name: sync-v2
 
 on:
   schedule:
-    - cron: '* 0/5 * * *' # 每 5 分钟运行一次
+    - cron: '*/5 * * * *'  # 每 5 分钟运行一次
   workflow_dispatch:
 
 jobs:
@@ -13,16 +13,17 @@ jobs:
       - name: Checkout your repository
         uses: actions/checkout@v4
 
-      - name: Clear v2.txt
+      - name: Clear v2_raw.txt and v2.txt
         run: |
+          > v2_raw.txt
           > v2.txt
 
       - name: Append content from local wd.md
         run: |
-          cat wd.md >> v2.txt
-          echo -e "\n" >> v2.txt
+          cat wd.md >> v2_raw.txt
+          echo -e "\n" >> v2_raw.txt
 
-      - name: Append content from dz1.txt links (any file type, with base64 detection)
+      - name: Append content from dz1.txt links (any type, with base64 detection)
         run: |
           while IFS= read -r url; do
             [[ -z "$url" || "$url" =~ ^# ]] && continue
@@ -36,12 +37,12 @@ jobs:
             content=$(curl -fsSL "$raw_url")
 
             if echo "$content" | grep -qE '^[A-Za-z0-9+/=]+$'; then
-              echo "$content" | base64 -d >> v2.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2.txt
+              echo "$content" | base64 -d >> v2_raw.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2_raw.txt
             else
-              echo "$content" >> v2.txt
+              echo "$content" >> v2_raw.txt
             fi
 
-            echo -e "\n" >> v2.txt
+            echo -e "\n" >> v2_raw.txt
           done < dz1.txt
 
       - name: Append content from dz2.txt GitHub repositories (.txt/.md only, with base64 detection)
@@ -62,26 +63,33 @@ jobs:
                 content=$(curl -fsSL "$raw_url")
 
                 if echo "$content" | grep -qE '^[A-Za-z0-9+/=]+$'; then
-                  echo "$content" | base64 -d >> v2.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2.txt
+                  echo "$content" | base64 -d >> v2_raw.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2_raw.txt
                 else
-                  echo "$content" >> v2.txt
+                  echo "$content" >> v2_raw.txt
                 fi
 
-                echo -e "\n" >> v2.txt
+                echo -e "\n" >> v2_raw.txt
               done
             fi
           done < dz2.txt
+
+      - name: Wait for 60 seconds before sorting
+        run: |
+          echo "等待 60 秒以确保资源准备完成..."
+          sleep 60
+
+      - name: Sort and rename nodes by city name
+        run: |
+          pip install requests
+          python3 sort_by_city.py
 
       - name: Set Git identity
         run: |
           git config --global user.name "${{ github.repository_owner }}"
           git config --global user.email "${{ github.repository_owner }}@users.noreply.github.com"
-          
-      - name: Clean v2.txt (remove empty and comment lines)
-        run: |
-          grep -vE '^\s*$|^#' v2.txt > cleaned.txt && mv cleaned.txt v2.txt          
+
       - name: Commit and push v2.txt
         run: |
           git add v2.txt
-          git commit -m "Auto-sync v2.txt from wd.md, dz1.txt, dz2.txt"
+          git commit -m "Auto-sync v2.txt with sorted city names"
           git push
