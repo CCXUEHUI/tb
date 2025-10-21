@@ -2,7 +2,7 @@ name: sync-v2
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # 每 5 分钟运行一次
+    - cron: '* 0/5 * * *'  # 每 5 小时运行一次
   workflow_dispatch:
 
 jobs:
@@ -72,11 +72,6 @@ jobs:
               done
             fi
           done < dz2.txt
-
-      - name: Wait for 60 seconds before sorting
-        run: |
-          echo "等待 60 秒以确保资源准备完成..."
-          sleep 60
 
       - name: Sort and rename nodes by city name
         run: |
