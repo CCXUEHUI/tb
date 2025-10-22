@@ -70,23 +70,8 @@ jobs:
             fi
           done < dz2.txt
 
-      - name: Install Xray-core with test support
-        run: |
-          XRAY_VERSION=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r .tag_name)
-          echo "✅ 最新版本: $XRAY_VERSION"
-          curl -L -o xray.zip https://github.com/XTLS/Xray-core/releases/download/${XRAY_VERSION}/Xray-linux-64.zip
-          unzip -o xray.zip
-          chmod +x xray
-          sudo mv xray /usr/local/bin/
-          echo "✅ 当前版本信息:"
-          xray version
-          echo "✅ 命令支持情况:"
-          xray help | grep test || echo "❌ 当前版本不支持 test 命令"
-
-      - name: Install Python dependencies and run speed test
-        run: |
-          pip install requests
-          python3 xray_speed_sort.py
+      - name: Copy raw to final output
+        run: cp v2_raw.txt v2.txt
 
       - name: Set Git identity
         run: |
@@ -96,5 +81,5 @@ jobs:
       - name: Commit and push results
         run: |
           git add v2.txt
-          git commit -m "Auto-sync v2.txt with Xray speed test"
+          git commit -m "Auto-sync v2.txt (no speed test)"
           git push
