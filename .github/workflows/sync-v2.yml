@@ -2,34 +2,99 @@ name: sync-v2
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
-  workflow_dispatch:
+    - cron: '0 */6 * * *'  # 每 6 小时自动运行
+  workflow_dispatch:       # 支持手动触发
 
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python and dependencies
+      - name: 🧰 Set up Python and dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests pyyaml
 
-      - name: Merge all sources into v2.txt
+      - name: 🧹 Clear v2.txt
+        run: echo -n > v2.txt
+
+      - name: 📦 Merge wd.md
+        run: |
+          cat wd.md >> v2.txt
+          echo -e "\n" >> v2.txt
+
+      - name: 🔗 Merge dz1.txt links
+        run: |
+          while IFS= read -r url; do
+            [[ -z "$url" || "$url" =~ ^# ]] && continue
+            raw_url="$url"
+            if [[ "$url" == https://github.com/* ]]; then
+              raw_url=$(echo "$url" | sed -E 's#https://github.com/([^/]+)/([^/]+)/blob/(.+)#https://raw.githubusercontent.com/\1/\2/\3#')
+            fi
+            echo "Fetching: $raw_url"
+            content=$(curl -fsSL "$raw_url")
+            if echo "$content" | grep -qE '^[A-Za-z0-9+/=]+$'; then
+              echo "$content" | base64 -d >> v2.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2.txt
+            else
+              echo "$content" >> v2.txt
+            fi
+            echo -e "\n" >> v2.txt
+          done < dz1.txt
+
+      - name: 🧬 Merge dz2.txt GitHub repos
+        run: |
+          while IFS= read -r repo_url; do
+            [[ -z "$repo_url" || "$repo_url" =~ ^# ]] && continue
+            echo "🔍 扫描仓库: $repo_url"
+            if [[ "$repo_url" =~ github.com/([^/]+)/([^/]+) ]]; then
+              user="${BASH_REMATCH[1]}"
+              repo="${BASH_REMATCH[2]}"
+              branch=$(curl -s https://api.github.com/repos/$user/$repo | jq -r .default_branch)
+              commit_sha=$(curl -s https://api.github.com/repos/$user/$repo/commits/$branch | jq -r .sha)
+              files=$(curl -s https://api.github.com/repos/$user/$repo/commits/$commit_sha | jq -r '.files[] | select(.filename | endswith(".txt")) | .filename')
+              for file in $files; do
+                raw_url="https://raw.githubusercontent.com/$user/$repo/$branch/$file"
+                echo "📄 获取文件: $raw_url"
+                content=$(curl -fsSL "$raw_url")
+                if echo "$content" | grep -qE '^[A-Za-z0-9+/=]+$'; then
+                  echo "$content" | base64 -d >> v2.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2.txt
+                else
+                  echo "$content" >> v2.txt
+                fi
+                echo -e "\n" >> v2.txt
+                break
+              done
+            fi
+          done < dz2.txt
+
+      - name: 🏷️ Rename nodes with city info
         run: python3 merge_nodes.py
 
-      - name: Test node latency and filter
+      - name: ⚙️ Install custom Xray-core (with test support)
+        run: |
+          echo "📦 下载自定义 Xray 构建"
+          curl -L -o xray.zip https://github.com/CCXUEHUI/tb/releases/download/1/v2rayN-linux-64.zip
+          unzip -o xray.zip || (echo "❌ 解压失败"; exit 1)
+          chmod +x xray || chmod +x Xray || true
+          if [ -f Xray ]; then mv Xray xray; fi
+          sudo mv xray /usr/local/bin/
+          echo "✅ 当前版本信息:"
+          xray version
+          echo "✅ 命令支持情况:"
+          xray help | grep test || (echo "❌ 当前版本不支持 test 命令"; exit 1)
+
+      - name: 🚀 Run latency test and filter nodes
         run: python3 test_nodes.py
 
-      - name: Set Git identity
+      - name: 🧾 Set Git identity
         run: |
           git config --global user.name "${{ github.repository_owner }}"
           git config --global user.email "${{ github.repository_owner }}@users.noreply.github.com"
 
-      - name: Commit and push results
+      - name: 📤 Commit and push results
         run: |
           git add v2.txt
           git commit -m "Auto-sync with latency test"
