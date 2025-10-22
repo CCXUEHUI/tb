@@ -68,7 +68,7 @@ jobs:
             fi
           done < dz2.txt
 
-      - name: Install Xray-core
+      - name: Install Xray-core with test support
         run: |
           XRAY_VERSION=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r .tag_name)
           curl -L -o xray.zip https://github.com/XTLS/Xray-core/releases/download/${XRAY_VERSION}/Xray-linux-64.zip
@@ -76,6 +76,7 @@ jobs:
           chmod +x xray
           sudo mv xray /usr/local/bin/
           xray version
+          xray help | grep test || echo "❌ 当前版本不支持 test 命令"
 
       - name: Install Python dependencies and run speed test
         run: |
