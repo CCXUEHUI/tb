@@ -64,7 +64,7 @@ jobs:
 
                 if echo "$content" | grep -qE '^[A-Za-z0-9+/=]+$'; then
                   echo "$content" | base64 -d >> v2_raw.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2_raw.txt
-                else:
+                else
                   echo "$content" >> v2_raw.txt
                 fi
 
@@ -77,7 +77,7 @@ jobs:
         run: |
           XRAY_VERSION=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r .tag_name)
           curl -L -o xray.zip https://github.com/XTLS/Xray-core/releases/download/${XRAY_VERSION}/Xray-linux-64.zip
-          unzip xray.zip
+          unzip -o xray.zip
           sudo mv xray /usr/local/bin/
           xray version
 
