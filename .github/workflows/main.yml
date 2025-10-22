@@ -13,18 +13,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: List workspace files
-        run: ls -lh
-
-      - name: Clear v2_raw.txt and v2.txt
-        run: |
-          > v2_raw.txt
-          > v2.txt
+      - name: Clear v2.txt
+        run: > v2.txt
 
       - name: Merge wd.md
         run: |
-          cat wd.md >> v2_raw.txt
-          echo -e "\n" >> v2_raw.txt
+          cat wd.md >> v2.txt
+          echo -e "\n" >> v2.txt
 
       - name: Merge dz1.txt links
         run: |
@@ -37,11 +32,11 @@ jobs:
             echo "Fetching: $raw_url"
             content=$(curl -fsSL "$raw_url")
             if echo "$content" | grep -qE '^[A-Za-z0-9+/=]+$'; then
-              echo "$content" | base64 -d >> v2_raw.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2_raw.txt
+              echo "$content" | base64 -d >> v2.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2.txt
             else
-              echo "$content" >> v2_raw.txt
+              echo "$content" >> v2.txt
             fi
-            echo -e "\n" >> v2_raw.txt
+            echo -e "\n" >> v2.txt
           done < dz1.txt
 
       - name: Merge dz2.txt GitHub repos (latest .txt only)
@@ -60,18 +55,20 @@ jobs:
                 echo "📄 获取文件: $raw_url"
                 content=$(curl -fsSL "$raw_url")
                 if echo "$content" | grep -qE '^[A-Za-z0-9+/=]+$'; then
-                  echo "$content" | base64 -d >> v2_raw.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2_raw.txt
+                  echo "$content" | base64 -d >> v2.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2.txt
                 else
-                  echo "$content" >> v2_raw.txt
+                  echo "$content" >> v2.txt
                 fi
-                echo -e "\n" >> v2_raw.txt
+                echo -e "\n" >> v2.txt
                 break
               done
             fi
           done < dz2.txt
 
-      - name: Copy raw to final output
-        run: cp v2_raw.txt v2.txt
+      - name: Rename nodes with city info
+        run: |
+          pip install requests
+          python3 merge_nodes.py
 
       - name: Set Git identity
         run: |
@@ -81,5 +78,5 @@ jobs:
       - name: Commit and push results
         run: |
           git add v2.txt
-          git commit -m "Auto-sync v2.txt (no speed test)"
+          git commit -m "Auto-sync v2.txt with city renaming"
           git push
