@@ -64,7 +64,7 @@ jobs:
 
                 if echo "$content" | grep -qE '^[A-Za-z0-9+/=]+$'; then
                   echo "$content" | base64 -d >> v2_raw.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2_raw.txt
-                else
+                else:
                   echo "$content" >> v2_raw.txt
                 fi
 
@@ -73,18 +73,18 @@ jobs:
             fi
           done < dz2.txt
 
-      - name: Install sing-box
+      - name: Install Xray-core
         run: |
-          VERSION=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | jq -r .tag_name)
-          curl -L -o sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/download/${VERSION}/sing-box-${VERSION}-linux-amd64.tar.gz
-          tar -xzf sing-box.tar.gz
-          sudo mv sing-box*/sing-box /usr/local/bin/
-          sing-box version
+          XRAY_VERSION=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r .tag_name)
+          curl -L -o xray.zip https://github.com/XTLS/Xray-core/releases/download/${XRAY_VERSION}/Xray-linux-64.zip
+          unzip xray.zip
+          sudo mv xray /usr/local/bin/
+          xray version
 
-      - name: Install Python dependencies and run speed_sort.py
+      - name: Install Python dependencies and run xray_speed_sort.py
         run: |
           pip install requests
-          python3 speed_sort.py
+          python3 xray_speed_sort.py
 
       - name: Set Git identity
         run: |
@@ -94,5 +94,5 @@ jobs:
       - name: Commit and push v2.txt
         run: |
           git add v2.txt
-          git commit -m "Auto-sync v2.txt with sorted city names"
+          git commit -m "Auto-sync v2.txt with Xray speed test"
           git push
