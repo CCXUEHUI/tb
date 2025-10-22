@@ -27,8 +27,8 @@ def get_city_cn(ip):
         pass
     return "未知"
 
-def format_config(config, index, city):
-    label = f"{str(index).zfill(2)}-{city}"
+def format_config(config, index, city, delay):
+    label = f"{str(index).zfill(2)}-{city}-{int(delay)}ms"
     if config.startswith("vmess://"):
         try:
             data = json.loads(base64.b64decode(config[8:] + '==').decode("utf-8"))
@@ -153,11 +153,17 @@ def run_xray_test():
             "--test.url", "https://www.google.com/generate_204",
             "--test.timeout", "5s", "--test.parallel", "10"
         ], capture_output=True, text=True)
-        print("Xray stdout:", result.stdout)
-        print("Xray stderr:", result.stderr)
+
+        print("📤 Xray stdout:\n", result.stdout)
+        print("📥 Xray stderr:\n", result.stderr)
+
+        if "unknown command" in result.stderr or not result.stdout.strip():
+            print("❌ Xray test 命令失败或无输出，请检查版本或配置")
+            return []
+
         return json.loads(result.stdout)
     except Exception as e:
-        print("❌ Xray test failed:", e)
+        print("❌ Xray test 异常:", e)
         return []
 
 def main():
@@ -171,6 +177,8 @@ def main():
     for i, line in enumerate(lines):
         tag = f"node{i}"
         delay = next((r["delay"] for r in results if r["tag"] == tag), float("inf"))
+        if delay >= 600:
+            continue
         ip, _ = extract_ip_port(line)
         city = get_city_cn(ip) if ip else "未知"
         enriched.append((city, delay, line))
@@ -179,7 +187,7 @@ def main():
 
     with open("v2.txt", "w", encoding="utf-8") as f:
         for i, (city, delay, line) in enumerate(top, 1):
-            f.write(format_config(line, i, city) + "\n")
+            f.write(format_config(line, i, city, delay) + "\n")
 
 if __name__ == "__main__":
     main()
