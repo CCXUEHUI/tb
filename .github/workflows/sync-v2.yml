@@ -2,29 +2,25 @@ name: sync-v2
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # 每 6 小时自动运行
-  workflow_dispatch:       # 支持手动触发
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
-      # 拉取仓库代码
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 清空 v2.txt
       - name: Clear v2.txt
         run: echo -n > v2.txt
 
-      # 合并 wd.md 内容
       - name: Merge wd.md
         run: |
           cat wd.md >> v2.txt
           echo -e "\n" >> v2.txt
 
-      # 合并 dz1.txt 中的订阅链接
       - name: Merge dz1.txt links
         run: |
           while IFS= read -r url; do
@@ -43,7 +39,6 @@ jobs:
             echo -e "\n" >> v2.txt
           done < dz1.txt
 
-      # 合并 dz2.txt 中的 GitHub 仓库（只取最新提交中的 .txt 文件）
       - name: Merge dz2.txt GitHub repos
         run: |
           while IFS= read -r repo_url; do
@@ -70,35 +65,31 @@ jobs:
             fi
           done < dz2.txt
 
-      # 安装 Python 依赖并执行城市识别 + 重命名
       - name: Rename nodes with city info
         run: |
           pip install requests
           python3 merge_nodes.py
 
-      # 安装 Xray-core（确保支持 test 命令）
-      - name: Install Xray-core
+      - name: Install custom Xray-core (with test support)
         run: |
-          XRAY_VERSION=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r .tag_name)
-          echo "✅ 最新版本: $XRAY_VERSION"
-          curl -L -o xray.zip https://github.com/XTLS/Xray-core/releases/download/${XRAY_VERSION}/Xray-linux-64.zip
+          echo "📦 下载 bruceblink 自定义 Xray 构建"
+          curl -L -o xray.zip https://github.com/bruceblink/free-v2ray/releases/download/latest/xray-linux-64.zip
           unzip -o xray.zip
           chmod +x xray
           sudo mv xray /usr/local/bin/
+          echo "✅ 当前版本信息:"
           xray version
+          echo "✅ 命令支持情况:"
           xray help | grep test || echo "❌ 当前版本不支持 test 命令"
 
-      # 执行测速脚本
       - name: Run speed test
         run: python3 speed_test.py
 
-      # 设置 Git 身份
       - name: Set Git identity
         run: |
           git config --global user.name "${{ github.repository_owner }}"
           git config --global user.email "${{ github.repository_owner }}@users.noreply.github.com"
 
-      # 提交并推送更新
       - name: Commit and push results
         run: |
           git add v2.txt
