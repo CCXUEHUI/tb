@@ -2,7 +2,7 @@ name: sync-v2
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # 每 6 小时运行一次
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
@@ -10,64 +10,59 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout your repository
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: List workspace files
+        run: ls -lh
 
       - name: Clear v2_raw.txt and v2.txt
         run: |
           > v2_raw.txt
           > v2.txt
 
-      - name: Append content from local wd.md
+      - name: Merge wd.md
         run: |
           cat wd.md >> v2_raw.txt
           echo -e "\n" >> v2_raw.txt
 
-      - name: Append content from dz1.txt links (any type, with base64 detection)
+      - name: Merge dz1.txt links
         run: |
           while IFS= read -r url; do
             [[ -z "$url" || "$url" =~ ^# ]] && continue
-
             raw_url="$url"
             if [[ "$url" == https://github.com/* ]]; then
               raw_url=$(echo "$url" | sed -E 's#https://github.com/([^/]+)/([^/]+)/blob/(.+)#https://raw.githubusercontent.com/\1/\2/\3#')
             fi
-
             echo "Fetching: $raw_url"
             content=$(curl -fsSL "$raw_url")
-
             if echo "$content" | grep -qE '^[A-Za-z0-9+/=]+$'; then
               echo "$content" | base64 -d >> v2_raw.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2_raw.txt
             else
               echo "$content" >> v2_raw.txt
             fi
-
             echo -e "\n" >> v2_raw.txt
           done < dz1.txt
 
-      - name: Append content from dz2.txt GitHub repositories (.txt/.md only, with base64 detection)
+      - name: Merge dz2.txt GitHub repos
         run: |
           while IFS= read -r repo_url; do
             [[ -z "$repo_url" || "$repo_url" =~ ^# ]] && continue
             echo "Scanning repo: $repo_url"
-
             if [[ "$repo_url" =~ github.com/([^/]+)/([^/]+) ]]; then
               user="${BASH_REMATCH[1]}"
               repo="${BASH_REMATCH[2]}"
               api_url="https://api.github.com/repos/$user/$repo/git/trees/main?recursive=1"
-
               files=$(curl -s "$api_url" | jq -r '.tree[] | select(.type=="blob") | .path' | grep -Ei '\.txt$|\.md$')
               for file in $files; do
                 raw_url="https://raw.githubusercontent.com/$user/$repo/main/$file"
                 echo "Fetching file: $raw_url"
                 content=$(curl -fsSL "$raw_url")
-
                 if echo "$content" | grep -qE '^[A-Za-z0-9+/=]+$'; then
                   echo "$content" | base64 -d >> v2_raw.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2_raw.txt
                 else
                   echo "$content" >> v2_raw.txt
                 fi
-
                 echo -e "\n" >> v2_raw.txt
               done
             fi
@@ -78,10 +73,11 @@ jobs:
           XRAY_VERSION=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r .tag_name)
           curl -L -o xray.zip https://github.com/XTLS/Xray-core/releases/download/${XRAY_VERSION}/Xray-linux-64.zip
           unzip -o xray.zip
+          chmod +x xray
           sudo mv xray /usr/local/bin/
           xray version
 
-      - name: Install Python dependencies and run xray_speed_sort.py
+      - name: Install Python dependencies and run speed test
         run: |
           pip install requests
           python3 xray_speed_sort.py
@@ -91,7 +87,7 @@ jobs:
           git config --global user.name "${{ github.repository_owner }}"
           git config --global user.email "${{ github.repository_owner }}@users.noreply.github.com"
 
-      - name: Commit and push v2.txt
+      - name: Commit and push results
         run: |
           git add v2.txt
           git commit -m "Auto-sync v2.txt with Xray speed test"
