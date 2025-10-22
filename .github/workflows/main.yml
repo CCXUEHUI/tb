@@ -44,19 +44,20 @@ jobs:
             echo -e "\n" >> v2_raw.txt
           done < dz1.txt
 
-      - name: Merge dz2.txt GitHub repos
+      - name: Merge dz2.txt GitHub repos (latest .txt only)
         run: |
           while IFS= read -r repo_url; do
             [[ -z "$repo_url" || "$repo_url" =~ ^# ]] && continue
-            echo "Scanning repo: $repo_url"
+            echo "🔍 扫描仓库: $repo_url"
             if [[ "$repo_url" =~ github.com/([^/]+)/([^/]+) ]]; then
               user="${BASH_REMATCH[1]}"
               repo="${BASH_REMATCH[2]}"
-              api_url="https://api.github.com/repos/$user/$repo/git/trees/main?recursive=1"
-              files=$(curl -s "$api_url" | jq -r '.tree[] | select(.type=="blob") | .path' | grep -Ei '\.txt$|\.md$')
+              branch=$(curl -s https://api.github.com/repos/$user/$repo | jq -r .default_branch)
+              commit_sha=$(curl -s https://api.github.com/repos/$user/$repo/commits/$branch | jq -r .sha)
+              files=$(curl -s https://api.github.com/repos/$user/$repo/commits/$commit_sha | jq -r '.files[] | select(.filename | endswith(".txt")) | .filename')
               for file in $files; do
-                raw_url="https://raw.githubusercontent.com/$user/$repo/main/$file"
-                echo "Fetching file: $raw_url"
+                raw_url="https://raw.githubusercontent.com/$user/$repo/$branch/$file"
+                echo "📄 获取文件: $raw_url"
                 content=$(curl -fsSL "$raw_url")
                 if echo "$content" | grep -qE '^[A-Za-z0-9+/=]+$'; then
                   echo "$content" | base64 -d >> v2_raw.txt || echo "# ⚠️ 解码失败: $raw_url" >> v2_raw.txt
@@ -64,6 +65,7 @@ jobs:
                   echo "$content" >> v2_raw.txt
                 fi
                 echo -e "\n" >> v2_raw.txt
+                break
               done
             fi
           done < dz2.txt
