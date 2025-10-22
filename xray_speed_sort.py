@@ -119,8 +119,6 @@ def build_xray_config(nodes):
         elif line.startswith("ss://"):
             try:
                 ss = line[5:]
-                if ss.startswith(""):
-                    ss = ss.split("#")[0]
                 if "@" in ss:
                     method_pass, server = ss.split("@")
                     method, password = base64.b64decode(method_pass + '==').decode().split(":")
@@ -149,8 +147,18 @@ def build_xray_config(nodes):
         json.dump(config, f, ensure_ascii=False, indent=2)
 
 def run_xray_test():
-    result = subprocess.run(["xray", "test", "-c", "xray_config.json", "--test.url", "https://www.google.com/generate_204", "--test.timeout", "5s", "--test.parallel", "10"], capture_output=True, text=True)
-    return json.loads(result.stdout)
+    try:
+        result = subprocess.run([
+            "xray", "test", "-c", "xray_config.json",
+            "--test.url", "https://www.google.com/generate_204",
+            "--test.timeout", "5s", "--test.parallel", "10"
+        ], capture_output=True, text=True)
+        print("Xray stdout:", result.stdout)
+        print("Xray stderr:", result.stderr)
+        return json.loads(result.stdout)
+    except Exception as e:
+        print("❌ Xray test failed:", e)
+        return []
 
 def main():
     with open("v2_raw.txt", "r", encoding="utf-8") as f:
