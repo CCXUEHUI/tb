@@ -2,8 +2,8 @@ name: sync-v2
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # 每 6 小时自动运行
-  workflow_dispatch:       # 支持手动触发
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
   sync:
@@ -77,10 +77,9 @@ jobs:
         run: |
           echo "📦 下载自定义 Xray 构建"
           curl -L -o xray.zip https://github.com/CCXUEHUI/tb/releases/download/1/v2rayN-linux-64.zip
-          unzip -o xray.zip || (echo "❌ 解压失败"; exit 1)
-          chmod +x xray || chmod +x Xray || true
-          if [ -f Xray ]; then mv Xray xray; fi
-          sudo mv xray /usr/local/bin/
+          unzip -o xray.zip
+          chmod +x v2rayN-linux-64/bin/xray/xray
+          sudo mv v2rayN-linux-64/bin/xray/xray /usr/local/bin/xray
           echo "✅ 当前版本信息:"
           xray version
           echo "✅ 命令支持情况:"
