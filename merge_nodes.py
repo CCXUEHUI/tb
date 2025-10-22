@@ -7,7 +7,9 @@ import requests
 def extract_ip(config):
     try:
         if config.startswith("vmess://"):
-            data = json.loads(base64.b64decode(config[8:] + '==').decode("utf-8"))
+            raw = config[8:]
+            padded = raw + '=' * (-len(raw) % 4)
+            data = json.loads(base64.b64decode(padded).decode("utf-8"))
             return data.get("add")
         elif config.startswith(("vless://", "trojan://", "ss://")):
             match = re.search(r'@([\w\.-]+):(\d+)', config)
@@ -30,11 +32,14 @@ def format_config(config, index, city):
     label = f"{str(index).zfill(2)}-{city}"
     if config.startswith("vmess://"):
         try:
-            data = json.loads(base64.b64decode(config[8:] + '==').decode("utf-8"))
+            raw = config[8:]
+            padded = raw + '=' * (-len(raw) % 4)
+            data = json.loads(base64.b64decode(padded).decode("utf-8"))
             data["ps"] = label
             new_json = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
             return "vmess://" + base64.b64encode(new_json.encode("utf-8")).decode("utf-8")
-        except:
+        except Exception as e:
+            print(f"⚠️ vmess 节点解析失败: {e}")
             return config
     else:
         parts = config.split("#", 1)
