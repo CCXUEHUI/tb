@@ -42,7 +42,7 @@ def format_config(config, index, city):
         return f"{base}#{urllib.parse.quote(label)}"
 
 def main():
-    with open("v2_raw.txt", "r", encoding="utf-8") as f:
+    with open("v2.txt", "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
     output = []
@@ -50,7 +50,8 @@ def main():
         ip = extract_ip(line)
         city = get_city_cn(ip) if ip else "未知"
         renamed = format_config(line, i, city)
-        output.append(renamed)
+        if renamed.strip():  # 去除空白行
+            output.append(renamed)
 
     with open("v2.txt", "w", encoding="utf-8") as f:
         f.write("\n".join(output))
