@@ -10,23 +10,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🧰 Set up Python and dependencies
+      - name: Clear v2.txt
         run: |
-          python -m pip install --upgrade pip
-          pip install requests pyyaml
+          echo -n > v2.txt
 
-      - name: 🧹 Clear v2.txt
-        run: echo -n > v2.txt
-
-      - name: 📦 Merge wd.md
+      - name: Merge wd.md
         run: |
           cat wd.md >> v2.txt
           echo -e "\n" >> v2.txt
 
-      - name: 🔗 Merge dz1.txt links
+      - name: Merge dz1.txt links
         run: |
           while IFS= read -r url; do
             [[ -z "$url" || "$url" =~ ^# ]] && continue
@@ -44,7 +40,7 @@ jobs:
             echo -e "\n" >> v2.txt
           done < dz1.txt
 
-      - name: 🧬 Merge dz2.txt GitHub repos
+      - name: Merge dz2.txt GitHub repos (latest .txt only)
         run: |
           while IFS= read -r repo_url; do
             [[ -z "$repo_url" || "$repo_url" =~ ^# ]] && continue
@@ -70,31 +66,18 @@ jobs:
             fi
           done < dz2.txt
 
-      - name: 🏷️ Rename nodes with city info
-        run: python3 merge_nodes.py
-
-      - name: ⚙️ Extract sing-box from tar.gz
+      - name: Rename nodes with city info
         run: |
-          echo "📦 下载并解压 sing-box"
-          curl -L -o sing-box.tar.gz https://github.com/CCXUEHUI/tb/releases/download/1.1/sing-box-1.12.11-linux-amd64.tar.gz
-          tar -xzf sing-box.tar.gz
-          SINGBOX_PATH=$(find . -type f -name sing-box | head -n 1)
-          chmod +x "$SINGBOX_PATH"
-          sudo mv "$SINGBOX_PATH" /usr/local/bin/sing-box
-          echo "✅ sing-box 安装成功:"
-          which sing-box
-          sing-box version
+          pip install requests
+          python3 merge_nodes.py
 
-      - name: 🚀 Run latency test and filter nodes
-        run: python3 test_nodes.py
-
-      - name: 🧾 Set Git identity
+      - name: Set Git identity
         run: |
           git config --global user.name "${{ github.repository_owner }}"
           git config --global user.email "${{ github.repository_owner }}@users.noreply.github.com"
 
-      - name: 📤 Commit and push results
+      - name: Commit and push results
         run: |
           git add v2.txt
-          git commit -m "Auto-sync with sing-box latency test"
+          git commit -m "Auto-sync v2.txt with city renaming"
           git push
