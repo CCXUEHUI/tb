@@ -73,17 +73,16 @@ jobs:
       - name: 🏷️ Rename nodes with city info
         run: python3 merge_nodes.py
 
-      - name: ⚙️ Install custom Xray-core (with test support)
+      - name: ⚙️ Install sing-box core
         run: |
-          echo "📦 下载自定义 Xray 构建"
-          curl -L -o xray.zip https://github.com/CCXUEHUI/tb/releases/download/1/v2rayN-linux-64.zip
-          unzip -o xray.zip
-          chmod +x v2rayN-linux-64/bin/xray/xray
-          sudo mv v2rayN-linux-64/bin/xray/xray /usr/local/bin/xray
+          echo "📦 下载 sing-box 构建"
+          curl -L -o sing-box.zip https://github.com/CCXUEHUI/tb/releases/download/1/sing-box-linux-64.zip
+          unzip -o sing-box.zip
+          chmod +x sing-box || chmod +x sing-box-linux-64/sing-box || true
+          if [ -f sing-box-linux-64/sing-box ]; then mv sing-box-linux-64/sing-box sing-box; fi
+          sudo mv sing-box /usr/local/bin/sing-box
           echo "✅ 当前版本信息:"
-          xray version
-          echo "✅ 命令支持情况:"
-          xray help | grep test || (echo "❌ 当前版本不支持 test 命令"; exit 1)
+          sing-box version
 
       - name: 🚀 Run latency test and filter nodes
         run: python3 test_nodes.py
@@ -96,5 +95,5 @@ jobs:
       - name: 📤 Commit and push results
         run: |
           git add v2.txt
-          git commit -m "Auto-sync with latency test"
+          git commit -m "Auto-sync with sing-box latency test"
           git push
