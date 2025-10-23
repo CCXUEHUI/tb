@@ -73,13 +73,13 @@ jobs:
       - name: 🏷️ Rename nodes with city info
         run: python3 merge_nodes.py
 
-      - name: ⚙️ Extract sing-box from v2rayN package
+      - name: ⚙️ Extract sing-box from tar.gz
         run: |
-          echo "📦 解压 v2ray 包并提取 sing-box"
-          curl -L -o v2ray.zip https://github.com/CCXUEHUI/tb/releases/download/1/v2rayN-linux-64.zip
-          unzip -o v2ray.zip
-          chmod +x v2rayN-linux-64/bin/sing-box/sing-box
-          sudo mv v2rayN-linux-64/bin/sing-box/sing-box /usr/local/bin/sing-box
+          echo "📦 下载并解压 sing-box"
+          curl -L -o sing-box.tar.gz https://github.com/CCXUEHUI/tb/releases/download/1.1/sing-box-1.12.11-linux-amd64.tar.gz
+          tar -xzf sing-box.tar.gz
+          chmod +x sing-box
+          sudo mv sing-box /usr/local/bin/sing-box
           echo "✅ sing-box 版本:"
           sing-box version
 
