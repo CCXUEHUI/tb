@@ -81,7 +81,8 @@ jobs:
           SINGBOX_PATH=$(find . -type f -name sing-box | head -n 1)
           chmod +x "$SINGBOX_PATH"
           sudo mv "$SINGBOX_PATH" /usr/local/bin/sing-box
-          echo "✅ sing-box 版本:"
+          echo "✅ sing-box 安装成功:"
+          which sing-box
           sing-box version
 
       - name: 🚀 Run latency test and filter nodes
