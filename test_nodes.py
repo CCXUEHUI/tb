@@ -116,4 +116,7 @@ def main():
     print(f"✅ 保留 {len(filtered)} 个延迟 < 600ms 的节点")
 
     with open("v2.txt", "w", encoding="utf-8") as f:
-        f.write("\n
+        f.write("\n".join(filtered) + "\n")
+
+if __name__ == "__main__":
+    main()
