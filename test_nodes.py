@@ -31,8 +31,8 @@ def build_singbox_config(nodes):
                         "enabled": data.get("tls") == "tls"
                     }
                 })
-            except:
-                continue
+            except Exception as e:
+                print(f"⚠️ vmess 节点解析失败: {e}")
         elif line.startswith("vless://"):
             match = re.match(r'vless://([^@]+)@([^:]+):(\d+)', line)
             if match:
@@ -67,6 +67,7 @@ def build_singbox_config(nodes):
     }
     with open("singbox_config.json", "w", encoding="utf-8") as f:
         json.dump(config, f, ensure_ascii=False, indent=2)
+    print(f"✅ 已生成配置，共 {len(outbounds)} 个节点")
 
 def run_singbox_test():
     try:
@@ -74,11 +75,22 @@ def run_singbox_test():
             "sing-box", "test", "-c", "singbox_config.json", "--target", "latency"
         ], capture_output=True, text=True)
 
-        if result.returncode != 0 or not result.stdout.strip():
+        if result.returncode != 0:
             print("❌ sing-box 测速失败")
+            print("STDOUT:", result.stdout)
+            print("STDERR:", result.stderr)
             return []
 
-        return json.loads(result.stdout)
+        try:
+            return json.loads(result.stdout)
+        except json.JSONDecodeError:
+            print("❌ sing-box 输出不是有效的 JSON")
+            print("原始输出:", result.stdout)
+            return []
+
+    except FileNotFoundError:
+        print("❌ 未找到 sing-box，请确认是否正确安装并添加到系统路径")
+        return []
     except Exception as e:
         print("❌ 执行异常:", e)
         return []
@@ -87,16 +99,21 @@ def main():
     with open("v2.txt", "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
-    build_singbox_config(lines)
-    results = run_singbox_test()
+    if not lines:
+        print("⚠️ v2.txt 中没有有效节点，跳过测速")
+        return
 
+    build_singbox_config(lines)
+
+    with open("singbox_config.json", "r", encoding="utf-8") as f:
+        print("📄 sing-box 配置内容:")
+        print(f.read())
+
+    results = run_singbox_test()
     valid_tags = {r["tag"] for r in results if r.get("latency", 9999) < 600}
     filtered = [line for i, line in enumerate(lines) if f"node{i}" in valid_tags]
 
     print(f"✅ 保留 {len(filtered)} 个延迟 < 600ms 的节点")
 
     with open("v2.txt", "w", encoding="utf-8") as f:
-        f.write("\n".join(filtered))
-
-if __name__ == "__main__":
-    main()
+        f.write("\n
