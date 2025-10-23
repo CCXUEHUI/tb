@@ -78,8 +78,9 @@ jobs:
           echo "📦 下载并解压 sing-box"
           curl -L -o sing-box.tar.gz https://github.com/CCXUEHUI/tb/releases/download/1.1/sing-box-1.12.11-linux-amd64.tar.gz
           tar -xzf sing-box.tar.gz
-          chmod +x sing-box-1.12.11-linux-amd64/sing-box
-          sudo mv sing-box-1.12.11-linux-amd64/sing-box /usr/local/bin/sing-box
+          SINGBOX_PATH=$(find . -type f -name sing-box | head -n 1)
+          chmod +x "$SINGBOX_PATH"
+          sudo mv "$SINGBOX_PATH" /usr/local/bin/sing-box
           echo "✅ sing-box 版本:"
           sing-box version
 
