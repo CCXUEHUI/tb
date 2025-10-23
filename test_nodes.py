@@ -3,8 +3,7 @@ import base64
 import re
 import subprocess
 
-# 构建 Xray 配置文件
-def build_xray_config(nodes):
+def build_singbox_config(nodes):
     outbounds = []
     for i, line in enumerate(nodes):
         tag = f"node{i}"
@@ -14,28 +13,22 @@ def build_xray_config(nodes):
                 padded = raw + '=' * (-len(raw) % 4)
                 data = json.loads(base64.b64decode(padded).decode("utf-8"))
                 outbounds.append({
+                    "type": "vmess",
                     "tag": tag,
-                    "protocol": "vmess",
-                    "settings": {
-                        "vnext": [{
-                            "address": data["add"],
-                            "port": int(data["port"]),
-                            "users": [{
-                                "id": data["id"],
-                                "alterId": int(data.get("aid", 0)),
-                                "security": data.get("scy", "auto")
-                            }]
-                        }]
+                    "server": data["add"],
+                    "server_port": int(data["port"]),
+                    "uuid": data["id"],
+                    "alter_id": int(data.get("aid", 0)),
+                    "security": data.get("scy", "auto"),
+                    "transport": {
+                        "type": data.get("net", "tcp"),
+                        "path": data.get("path", ""),
+                        "headers": {
+                            "Host": data.get("host", "")
+                        }
                     },
-                    "streamSettings": {
-                        "network": data.get("net", "tcp"),
-                        "security": "tls" if data.get("tls") == "tls" else "none",
-                        "wsSettings": {
-                            "path": data.get("path", ""),
-                            "headers": {
-                                "Host": data.get("host", "")
-                            }
-                        } if data.get("net") == "ws" else None
+                    "tls": {
+                        "enabled": data.get("tls") == "tls"
                     }
                 })
             except:
@@ -45,21 +38,14 @@ def build_xray_config(nodes):
             if match:
                 uuid, host, port = match.groups()
                 outbounds.append({
+                    "type": "vless",
                     "tag": tag,
-                    "protocol": "vless",
-                    "settings": {
-                        "vnext": [{
-                            "address": host,
-                            "port": int(port),
-                            "users": [{
-                                "id": uuid,
-                                "encryption": "none"
-                            }]
-                        }]
-                    },
-                    "streamSettings": {
-                        "network": "tcp",
-                        "security": "tls"
+                    "server": host,
+                    "server_port": int(port),
+                    "uuid": uuid,
+                    "flow": "",
+                    "tls": {
+                        "enabled": True
                     }
                 })
         elif line.startswith("trojan://"):
@@ -67,36 +53,29 @@ def build_xray_config(nodes):
             if match:
                 password, host, port = match.groups()
                 outbounds.append({
+                    "type": "trojan",
                     "tag": tag,
-                    "protocol": "trojan",
-                    "settings": {
-                        "servers": [{
-                            "address": host,
-                            "port": int(port),
-                            "password": password
-                        }]
-                    },
-                    "streamSettings": {
-                        "security": "tls"
+                    "server": host,
+                    "server_port": int(port),
+                    "password": password,
+                    "tls": {
+                        "enabled": True
                     }
                 })
     config = {
         "outbounds": outbounds
     }
-    with open("xray_config.json", "w", encoding="utf-8") as f:
+    with open("singbox_config.json", "w", encoding="utf-8") as f:
         json.dump(config, f, ensure_ascii=False, indent=2)
 
-# 执行 Xray 测速命令
-def run_xray_test():
+def run_singbox_test():
     try:
         result = subprocess.run([
-            "xray", "test", "-c", "xray_config.json",
-            "--test.url", "http://www.gstatic.com/generate_204",
-            "--test.timeout", "5s", "--test.parallel", "10"
+            "sing-box", "test", "-c", "singbox_config.json", "--target", "latency"
         ], capture_output=True, text=True)
 
         if result.returncode != 0 or not result.stdout.strip():
-            print("❌ Xray 测速失败")
+            print("❌ sing-box 测速失败")
             return []
 
         return json.loads(result.stdout)
@@ -104,16 +83,14 @@ def run_xray_test():
         print("❌ 执行异常:", e)
         return []
 
-# 主流程
 def main():
     with open("v2.txt", "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
-    build_xray_config(lines)
-    results = run_xray_test()
+    build_singbox_config(lines)
+    results = run_singbox_test()
 
-    # 提取延迟低于 600ms 的节点
-    valid_tags = {r["tag"] for r in results if r.get("delay", 9999) < 600}
+    valid_tags = {r["tag"] for r in results if r.get("latency", 9999) < 600}
     filtered = [line for i, line in enumerate(lines) if f"node{i}" in valid_tags]
 
     print(f"✅ 保留 {len(filtered)} 个延迟 < 600ms 的节点")
