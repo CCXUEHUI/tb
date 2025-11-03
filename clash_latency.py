@@ -1,55 +1,47 @@
-# clash_latency.py
-# ⚡ 使用 TCP 连接测试订阅节点延迟，并按延迟排序写入 v2.txt
-
 import asyncio
 import base64
 import json
 import re
 import time
-from urllib.parse import urlparse
+import urllib.parse
+import aiohttp
 
-MAX_LATENCY = 600  # 最大延迟阈值（毫秒）
+GOOGLE_URL = "https://www.google.com/generate_204"
+DOWNLOAD_URL = "https://cachefly.cachefly.net/50mb.test"
 
 def parse_node_url(url):
     try:
         if url.startswith("vmess://"):
             raw = url[8:]
             data = json.loads(base64.b64decode(raw + '=' * (-len(raw) % 4)).decode("utf-8"))
-            return {
-                "name": data.get("ps", "vmess"),
-                "type": "vmess",
-                "server": data["add"],
-                "port": int(data["port"])
-            }
-        elif url.startswith("trojan://"):
-            parsed = urlparse(url)
-            return {
-                "name": parsed.fragment or "trojan",
-                "type": "trojan",
-                "server": parsed.hostname,
-                "port": parsed.port or 443
-            }
-        elif url.startswith("vless://"):
-            parsed = urlparse(url)
-            return {
-                "name": parsed.fragment or "vless",
-                "type": "vless",
-                "server": parsed.hostname,
-                "port": parsed.port or 443
-            }
+            return {"name": data.get("ps", "vmess")}
+        elif url.startswith("trojan://") or url.startswith("vless://"):
+            parsed = urllib.parse.urlparse(url)
+            return {"name": parsed.fragment or "node"}
         elif url.startswith("ss://"):
-            return {"name": "ss", "type": "ss", "server": "skip", "port": 0}
+            return {"name": "ss"}
     except:
         return None
 
-async def test_node_latency(node):
+async def test_google_access(session):
     try:
-        reader, writer = await asyncio.wait_for(
-            asyncio.open_connection(node["server"], node["port"]), timeout=5.0
-        )
-        writer.close()
-        await writer.wait_closed()
-        return int((time.time() - start_time) * 1000)
+        start = time.time()
+        async with session.get(GOOGLE_URL, timeout=5) as resp:
+            if resp.status == 204:
+                return int((time.time() - start) * 1000)
+    except:
+        return None
+
+async def test_download_speed(session):
+    try:
+        start = time.time()
+        async with session.get(DOWNLOAD_URL, timeout=10) as resp:
+            total = 0
+            async for chunk in resp.content.iter_chunked(1024 * 64):
+                total += len(chunk)
+        duration = time.time() - start
+        speed_mbps = round((total * 8 / 1024 / 1024) / duration, 2)
+        return speed_mbps
     except:
         return None
 
@@ -60,28 +52,30 @@ async def main():
     nodes = []
     for line in lines:
         node = parse_node_url(line)
-        if node and node["type"] != "ss":
+        if node:
             nodes.append((line, node))
 
     print(f"📡 待测速节点数: {len(nodes)}")
     results = []
 
-    for line, node in nodes:
-        global start_time
-        start_time = time.time()
-        latency = await test_node_latency(node)
-        if latency is not None and latency < MAX_LATENCY:
-            print(f"✅ {node['name']} {node['server']}:{node['port']} - {latency}ms")
-            results.append((line, latency))
-        else:
-            print(f"❌ {node['name']} {node['server']}:{node['port']} - 超时或过慢")
+    async with aiohttp.ClientSession() as session:
+        for line, node in nodes:
+            google_time = await test_google_access(session)
+            download_speed = await test_download_speed(session)
 
-    # 按延迟升序排序
+            if google_time is None:
+                print(f"❌ {node['name']} 无法访问 Google")
+                continue
+
+            print(f"✅ {node['name']} Google: {google_time}ms | DL: {download_speed}Mbps")
+            results.append((line, google_time))
+
+    # 按 Google 访问速度升序排序
     results.sort(key=lambda x: x[1])
 
     with open("v2.txt", "w", encoding="utf-8") as f:
-        for line, latency in results:
-            f.write(line + f" #latency={latency}\n")
+        for line, _ in results:
+            f.write(line + "\n")
 
     print(f"✅ 保留 {len(results)} 个节点")
 
