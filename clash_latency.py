@@ -1,5 +1,5 @@
 # clash_latency.py
-# ⚡ 使用 TCP 连接测试订阅节点延迟，并筛选可用节点
+# ⚡ 使用 TCP 连接测试订阅节点延迟，并按延迟排序写入 v2.txt
 
 import asyncio
 import base64
@@ -64,7 +64,7 @@ async def main():
             nodes.append((line, node))
 
     print(f"📡 待测速节点数: {len(nodes)}")
-    good = []
+    results = []
 
     for line, node in nodes:
         global start_time
@@ -72,13 +72,18 @@ async def main():
         latency = await test_node_latency(node)
         if latency is not None and latency < MAX_LATENCY:
             print(f"✅ {node['name']} {node['server']}:{node['port']} - {latency}ms")
-            good.append(line)
+            results.append((line, latency))
         else:
             print(f"❌ {node['name']} {node['server']}:{node['port']} - 超时或过慢")
 
+    # 按延迟升序排序
+    results.sort(key=lambda x: x[1])
+
     with open("v2.txt", "w", encoding="utf-8") as f:
-        f.write("\n".join(good) + "\n")
-    print(f"✅ 保留 {len(good)} 个节点")
+        for line, latency in results:
+            f.write(line + f" #latency={latency}\n")
+
+    print(f"✅ 保留 {len(results)} 个节点")
 
 if __name__ == "__main__":
     asyncio.run(main())
