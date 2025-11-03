@@ -5,14 +5,6 @@ import socket
 import requests
 from urllib.parse import urlparse
 
-def extract_google(text):
-    match = re.search(r'#google=(\d+)', text)
-    return f"G({match.group(1)}ms)" if match else "G(?)"
-
-def extract_speed(text):
-    match = re.search(r'#speed=([\d.]+)', text)
-    return f"D({match.group(1)}Mbps)" if match else "D(?)"
-
 def resolve_ip(host):
     try:
         return socket.gethostbyname(host)
@@ -48,17 +40,15 @@ def get_city_from_url(url):
     except:
         return "未知"
 
-def clean_and_rename(line):
-    g = extract_google(line)
-    d = extract_speed(line)
-
+def rename(line, google, speed):
+    label = f"{google}ms-D({speed}Mbps)"
     if line.startswith("vmess://"):
         try:
             raw = line[8:]
             city = get_city_from_vmess(raw)
             decoded = base64.b64decode(raw + '=' * (-len(raw) % 4)).decode("utf-8")
             data = json.loads(decoded)
-            data["ps"] = f"{city}-{g}-{d}"
+            data["ps"] = f"{city}-G({label})"
             new_raw = base64.b64encode(json.dumps(data, separators=(',', ':')).encode()).decode().rstrip("=")
             return f"vmess://{new_raw}"
         except:
@@ -67,7 +57,7 @@ def clean_and_rename(line):
         try:
             url = line.split("#")[0]
             city = get_city_from_url(line)
-            return f"{url}#{city}-{g}-{d}"
+            return f"{url}#{city}-G({label})"
         except:
             return line
     else:
@@ -77,7 +67,18 @@ def main():
     with open("v2.txt", "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip()]
 
-    renamed = [clean_and_rename(line) for line in lines]
+    with open("latency.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    line_map = {item["line"]: item for item in data}
+    renamed = []
+
+    for line in lines:
+        item = line_map.get(line)
+        if item:
+            renamed.append(rename(line, item["google"], item["speed"]))
+        else:
+            renamed.append(line)
 
     with open("v2.txt", "w", encoding="utf-8") as f:
         f.write("\n".join(renamed) + "\n")
