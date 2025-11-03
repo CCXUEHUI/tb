@@ -10,19 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: Clear v2.txt
+      - name: 🧰 Set up Python and dependencies
         run: |
-          echo -n > v2.txt
+          python -m pip install --upgrade pip
+          pip install requests pyyaml
 
-      - name: Merge wd.md
+      - name: 🧹 Clear v2.txt
+        run: echo -n > v2.txt
+
+      - name: 📦 Merge wd.md
         run: |
           cat wd.md >> v2.txt
           echo -e "\n" >> v2.txt
 
-      - name: Merge dz1.txt links
+      - name: 🔗 Merge dz1.txt links
         run: |
           while IFS= read -r url; do
             [[ -z "$url" || "$url" =~ ^# ]] && continue
@@ -40,7 +44,7 @@ jobs:
             echo -e "\n" >> v2.txt
           done < dz1.txt
 
-      - name: Merge dz2.txt GitHub repos (latest .txt only)
+      - name: 🧬 Merge dz2.txt GitHub repos
         run: |
           while IFS= read -r repo_url; do
             [[ -z "$repo_url" || "$repo_url" =~ ^# ]] && continue
@@ -66,18 +70,19 @@ jobs:
             fi
           done < dz2.txt
 
-      - name: Rename nodes with city info
-        run: |
-          pip install requests
-          python3 merge_nodes.py
+      - name: 🚀 Run latency test and filter nodes
+        run: python3 clash_latency.py
 
-      - name: Set Git identity
+      - name: 🏷️ Rename nodes with city info
+        run: python3 merge_nodes.py
+
+      - name: 🧾 Set Git identity
         run: |
           git config --global user.name "${{ github.repository_owner }}"
           git config --global user.email "${{ github.repository_owner }}@users.noreply.github.com"
 
-      - name: Commit and push results
+      - name: 📤 Commit and push results
         run: |
           git add v2.txt
-          git commit -m "Auto-sync v2.txt with city renaming"
+          git commit -m "Auto-sync with clash-style latency test and renaming"
           git push
