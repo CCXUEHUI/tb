@@ -14,12 +14,12 @@ def parse_node_url(url):
         if url.startswith("vmess://"):
             raw = url[8:]
             data = json.loads(base64.b64decode(raw + '=' * (-len(raw) % 4)).decode("utf-8"))
-            return {"name": data.get("ps", "vmess")}
+            return {"type": "vmess", "server": data["add"]}
         elif url.startswith("trojan://") or url.startswith("vless://"):
             parsed = urllib.parse.urlparse(url)
-            return {"name": parsed.fragment or "node"}
+            return {"type": "other", "server": parsed.hostname}
         elif url.startswith("ss://"):
-            return {"name": "ss"}
+            return {"type": "ss", "server": "skip"}
     except:
         return None
 
@@ -49,35 +49,39 @@ async def main():
     with open("v2.txt", "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
-    nodes = []
-    for line in lines:
-        node = parse_node_url(line)
-        if node:
-            nodes.append((line, node))
-
-    print(f"📡 待测速节点数: {len(nodes)}")
     results = []
 
     async with aiohttp.ClientSession() as session:
-        for line, node in nodes:
+        for line in lines:
+            node = parse_node_url(line)
+            if not node:
+                continue
+
             google_time = await test_google_access(session)
             download_speed = await test_download_speed(session)
 
             if google_time is None:
-                print(f"❌ {node['name']} 无法访问 Google")
+                print(f"❌ 无法访问 Google: {line[:30]}...")
                 continue
 
-            print(f"✅ {node['name']} Google: {google_time}ms | DL: {download_speed}Mbps")
-            results.append((line, google_time))
+            print(f"✅ Google: {google_time}ms | DL: {download_speed}Mbps")
+            results.append({
+                "line": line,
+                "google": google_time,
+                "speed": download_speed
+            })
 
-    # 按 Google 访问速度升序排序
-    results.sort(key=lambda x: x[1])
+    # 按 Google 延迟排序
+    results.sort(key=lambda x: x["google"])
 
     with open("v2.txt", "w", encoding="utf-8") as f:
-        for line, _ in results:
-            f.write(line + "\n")
+        for item in results:
+            f.write(item["line"] + "\n")
 
-    print(f"✅ 保留 {len(results)} 个节点")
+    with open("latency.json", "w", encoding="utf-8") as f:
+        json.dump(results, f, ensure_ascii=False, indent=2)
+
+    print(f"✅ 写入 {len(results)} 个节点到 v2.txt 和 latency.json")
 
 if __name__ == "__main__":
     asyncio.run(main())
