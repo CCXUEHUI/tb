@@ -5,13 +5,11 @@ import asyncio
 import base64
 import json
 import re
-import yaml
 import time
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse
 
 MAX_LATENCY = 600  # 最大延迟阈值（毫秒）
 
-# ✅ 解析 vmess/trojan/vless/ss 节点为标准格式
 def parse_node_url(url):
     try:
         if url.startswith("vmess://"):
@@ -40,11 +38,10 @@ def parse_node_url(url):
                 "port": parsed.port or 443
             }
         elif url.startswith("ss://"):
-            return {"name": "ss", "type": "ss", "server": "skip", "port": 0}  # 不测速 ss
+            return {"name": "ss", "type": "ss", "server": "skip", "port": 0}
     except:
         return None
 
-# ✅ 异步 TCP 延迟测试
 async def test_node_latency(node):
     try:
         reader, writer = await asyncio.wait_for(
@@ -56,7 +53,6 @@ async def test_node_latency(node):
     except:
         return None
 
-# ✅ 主函数：读取 v2.txt，测速并筛选
 async def main():
     with open("v2.txt", "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
