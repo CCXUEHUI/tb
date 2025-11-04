@@ -1,95 +1,95 @@
-port: 7890
-socks-port: 7891
 allow-lan: true
 mode: Rule
+port: 7890
 proxies:
-- name: claw日本
-  type: vmess
-  server: 240b:4009:25a:1801:0:c2fa:3f63:cfed
-  port: 18124
-  uuid: 3a2ef7fd-44da-4e29-8916-735418843419
-  alterId: 0
+- alterId: 0
   cipher: auto
-  tls: false
-  network: tcp
-- name: '|Alice|HK'
-  type: vmess
-  server: 104.18.38.155
-  port: 443
-  uuid: cc30ce80-acbe-4603-bf29-d9f7f5acbf9d
-  alterId: 0
-  cipher: auto
-  tls: tls
+  name: '|RFC|HKCO'
   network: ws
-  ws-opts:
-    path: /c583a2
-    headers:
-      Host: speedtest.cnabc.tk
-- name: '|Oracle|SG'
-  type: vmess
-  server: 104.18.38.155
   port: 8443
-  uuid: 404e0e68-258c-4a70-9987-203918ba9342
-  alterId: 0
-  cipher: auto
-  tls: tls
-  network: ws
-  ws-opts:
-    path: /58a28b
-    headers:
-      Host: sg.cnabc.tk
-- name: '|RFC|Claw'
-  type: vmess
-  server: claw.cnabc.tk
-  port: 443
-  uuid: d8ba4f54-5db4-48d4-870f-a08783ff8a88
-  alterId: 0
-  cipher: auto
-  tls: tls
-  network: ws
-  ws-opts:
-    path: /97fe54
-    headers:
-      Host: claw.cnabc.tk
-- name: '|RFC|Clawᵒᵘᵗ'
-  type: vmess
-  server: claw.cnabc.tk
-  port: 8443
-  uuid: 756611d3-dc58-4322-9d0f-4fb97fa0384d
-  alterId: 0
-  cipher: auto
-  tls: tls
-  network: ws
-  ws-opts:
-    path: /eff842
-    headers:
-      Host: fcc.cnabc.tk
-- name: '|RFC|HKCO'
-  type: vmess
   server: hkco.cnabc.tk
-  port: 8443
-  uuid: d5014a83-8aeb-4d8d-a85a-1643a4178469
-  alterId: 0
-  cipher: auto
   tls: tls
-  network: ws
+  type: vmess
+  uuid: d5014a83-8aeb-4d8d-a85a-1643a4178469
   ws-opts:
-    path: /754d25
     headers:
       Host: hkco.cnabc.tk
-- name: '|RFC|JPCO'
-  type: vmess
-  server: jpco.cnabc.tk
-  port: 22
-  uuid: 33b2f0c6-c3d3-4ddd-a502-6220ab6d0720
-  alterId: 0
+    path: /754d25
+- alterId: 0
   cipher: auto
-  tls: tls
+  name: '|Oracle|SG'
   network: ws
+  port: 8443
+  server: 104.18.38.155
+  tls: tls
+  type: vmess
+  uuid: 404e0e68-258c-4a70-9987-203918ba9342
   ws-opts:
-    path: /912241
+    headers:
+      Host: sg.cnabc.tk
+    path: /58a28b
+- alterId: 0
+  cipher: auto
+  name: '|RFC|JPCO'
+  network: ws
+  port: 22
+  server: jpco.cnabc.tk
+  tls: tls
+  type: vmess
+  uuid: 33b2f0c6-c3d3-4ddd-a502-6220ab6d0720
+  ws-opts:
     headers:
       Host: jpco.cnabc.tk
+    path: /912241
+- alterId: 0
+  cipher: auto
+  name: '|Alice|HK'
+  network: ws
+  port: 443
+  server: 104.18.38.155
+  tls: tls
+  type: vmess
+  uuid: cc30ce80-acbe-4603-bf29-d9f7f5acbf9d
+  ws-opts:
+    headers:
+      Host: speedtest.cnabc.tk
+    path: /c583a2
+- alterId: 0
+  cipher: auto
+  name: '|RFC|Clawᵒᵘᵗ'
+  network: ws
+  port: 8443
+  server: claw.cnabc.tk
+  tls: tls
+  type: vmess
+  uuid: 756611d3-dc58-4322-9d0f-4fb97fa0384d
+  ws-opts:
+    headers:
+      Host: fcc.cnabc.tk
+    path: /eff842
+- alterId: 0
+  cipher: auto
+  name: '|RFC|Claw'
+  network: ws
+  port: 443
+  server: claw.cnabc.tk
+  tls: tls
+  type: vmess
+  uuid: d8ba4f54-5db4-48d4-870f-a08783ff8a88
+  ws-opts:
+    headers:
+      Host: claw.cnabc.tk
+    path: /97fe54
+- alterId: 0
+  cipher: auto
+  name: claw日本
+  network: tcp
+  port: 18124
+  server: 240b:4009:25a:1801:0:c2fa:3f63:cfed
+  tls: false
+  type: vmess
+  uuid: 3a2ef7fd-44da-4e29-8916-735418843419
 proxy-groups: []
 rules:
 - DOMAIN-SUFFIX,google.com,DIRECT
+socks-port: 7891
