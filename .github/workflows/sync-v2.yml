@@ -16,7 +16,7 @@ jobs:
       - name: 🧰 Set up Python and dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests aiohttp
+          pip install requests pyyaml aiohttp
 
       - name: 📦 Download Clash.Meta
         run: |
@@ -24,23 +24,24 @@ jobs:
           tar -xzf clash.tar.gz
           chmod +x clash.meta
 
+      - name: 🧬 Generate config.yaml from v2.txt
+        run: python3 generate_config.py
+
       - name: ⚙️ Start Clash in background
         run: |
-          mkdir -p clash_config
-          cp config.yaml clash_config/config.yaml
-          nohup ./clash.meta -d clash_config > clash.log 2>&1 &
-          sleep 5  # 等待 Clash 启动
+          nohup ./clash.meta -d . > clash.log 2>&1 &
+          sleep 5
 
-      - name: 🧪 Test Google via proxy
-        run: python3 proxy_google_test.py
+      - name: 🧪 Run multi-node Google latency test
+        run: python3 proxy_google_rank.py
 
       - name: 🧾 Set Git identity
         run: |
           git config --global user.name "${{ github.repository_owner }}"
           git config --global user.email "${{ github.repository_owner }}@users.noreply.github.com"
 
-      - name: 📤 Commit proxy test result
+      - name: 📤 Commit latency ranking
         run: |
-          git add proxy_result.json
-          git commit -m "Update proxy Google latency result"
+          git add proxy_rank.json proxy_rank.md
+          git commit -m "Update multi-node Google latency ranking"
           git push
