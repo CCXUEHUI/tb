@@ -6,14 +6,10 @@ import subprocess
 import time
 import yaml
 
-CLASH_API = "https://api.github.com/repos/MetaCubeX/Clash.Meta/releases/latest"
-CLASH_DIR = "clash_meta"
+CLASH_API = "http://127.0.0.1:9090"
 CONFIG_PATH = "config.yaml"
-LOCAL_PROXY_PORT = 7890
-TEST_URLS = [
-    "https://www.google.com/generate_204",
-    "https://www.youtube.com"
-]
+CLASH_DIR = "clash_meta"
+CLASH_BIN = os.path.join(CLASH_DIR, "clash.meta.exe" if platform.system().lower() == "windows" else "clash.meta")
 
 def get_system_arch():
     sys = platform.system().lower()
@@ -26,20 +22,19 @@ def get_system_arch():
         sys = 'linux'
     else:
         raise Exception("Unsupported OS")
-
     if arch in ['x86_64', 'amd64']:
         arch = 'amd64'
     elif arch in ['arm64', 'aarch64']:
         arch = 'arm64'
     else:
         raise Exception("Unsupported architecture")
-
     return sys, arch
 
 def download_clash_meta():
     sys, arch = get_system_arch()
     print(f"检测系统: {sys}, 架构: {arch}")
-    resp = requests.get(CLASH_API)
+    api_url = "https://api.github.com/repos/MetaCubeX/Clash.Meta/releases/latest"
+    resp = requests.get(api_url)
     assets = resp.json().get("assets", [])
     for asset in assets:
         name = asset["name"]
@@ -51,59 +46,78 @@ def download_clash_meta():
                 f.write(requests.get(url).content)
             with zipfile.ZipFile(clash_zip, 'r') as zip_ref:
                 zip_ref.extractall(CLASH_DIR)
-            clash_path = os.path.join(CLASH_DIR, "clash.meta.exe" if sys == "windows" else "clash.meta")
-            os.chmod(clash_path, 0o755)
-            return clash_path
+            os.chmod(CLASH_BIN, 0o755)
+            return
     raise Exception("未找到匹配的 Clash.Meta 版本")
 
-def run_clash(clash_path, config_path="config.yaml"):
+def run_clash():
     print("启动 Clash...")
-    process = subprocess.Popen([clash_path, "-f", config_path])
-    time.sleep(5)  # 等待 Clash 启动
-    return process
+    return subprocess.Popen([CLASH_BIN, "-f", CONFIG_PATH])
 
 def stop_clash(process):
     if process:
         process.terminate()
         print("Clash 已关闭")
 
-def test_latency_via_proxy(proxy_port, timeout=3):
-    proxies = {
-        'http': f'http://127.0.0.1:{proxy_port}',
-        'https': f'http://127.0.0.1:{proxy_port}'
-    }
-    latencies = []
-    for url in TEST_URLS:
+def wait_for_clash_api(timeout=10):
+    for _ in range(timeout):
         try:
-            start = time.time()
-            r = requests.get(url, proxies=proxies, timeout=timeout)
-            latency = int((time.time() - start) * 1000)
-            latencies.append(latency)
+            r = requests.get(f"{CLASH_API}/configs")
+            if r.status_code == 200:
+                return True
         except:
-            latencies.append(9999)
-    return sum(latencies) // len(latencies)
+            pass
+        time.sleep(1)
+    raise Exception("Clash API 启动失败")
 
-def update_config_with_latency():
+def switch_proxy(group, proxy_name):
+    url = f"{CLASH_API}/proxies/{group}"
+    requests.put(url, json={"name": proxy_name})
+
+def test_google_latency():
+    try:
+        start = time.time()
+        r = requests.get("https://www.google.com/generate_204", proxies={
+            "http": "http://127.0.0.1:7890",
+            "https": "http://127.0.0.1:7890"
+        }, timeout=5)
+        return int((time.time() - start) * 1000)
+    except:
+        return 9999
+
+def update_config_names(latency_map):
     with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
         config = yaml.safe_load(f)
-
     for proxy in config.get('proxies', []):
-        print(f"测试节点: {proxy.get('name')}")
-        latency = test_latency_via_proxy(LOCAL_PROXY_PORT)
-        old_name = proxy.get('name', 'Unnamed')
-        proxy['name'] = f"{old_name}-{latency}ms"
-
+        name = proxy['name']
+        if name in latency_map:
+            proxy['name'] = f"{name}-{latency_map[name]}ms"
     with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
         yaml.dump(config, f, allow_unicode=True, sort_keys=False)
 
-# 主流程
-if not os.path.exists(CLASH_DIR):
-    clash_exec = download_clash_meta()
-else:
-    clash_exec = os.path.join(CLASH_DIR, "clash.meta.exe" if platform.system().lower() == "windows" else "clash.meta")
+def main():
+    if not os.path.exists(CLASH_BIN):
+        download_clash_meta()
+    clash_process = run_clash()
+    try:
+        wait_for_clash_api()
+        proxies = requests.get(f"{CLASH_API}/proxies").json()
+        groups = [k for k, v in proxies.items() if v['type'] == 'Selector']
+        if not groups:
+            raise Exception("未找到 proxy-groups")
+        group = groups[0]
+        all_proxies = proxies[group]['all']
+        latency_map = {}
+        for name in all_proxies:
+            print(f"切换节点: {name}")
+            switch_proxy(group, name)
+            time.sleep(2)
+            latency = test_google_latency()
+            print(f"→ {name}: {latency}ms")
+            latency_map[name] = latency
+        update_config_names(latency_map)
+    finally:
+        stop_clash(clash_process)
 
-clash_process = run_clash(clash_exec)
-try:
-    update_config_with_latency()
-finally:
-    stop_clash(clash_process)
+if __name__ == "__main__":
+    main()
