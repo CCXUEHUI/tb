@@ -15,16 +15,19 @@ def get_txt_from_raw_url(url):
 def get_latest_txt_from_github_repo(repo_url):
     try:
         html = requests.get(repo_url, timeout=10).text
-        # 匹配根目录下的 .txt 文件链接（只匹配 blob/main/*.txt 或 blob/master/*.txt）
+        # 匹配根目录下的 .txt 文件链接（支持 main 或 master 分支）
         matches = re.findall(r'href="(/[^/]+/[^/]+/blob/(main|master)/[^/]+\.txt)"', html)
         if not matches:
             print(f"仓库中未找到根目录下的 .txt 文件: {repo_url}")
             return ''
         # 取第一个匹配项作为最新提交的文件
         href = matches[0][0]
-        parts = href.split('/')
-        if len(parts) == 5:
-            raw_url = f"https://raw.githubusercontent.com/{parts[1]}/{parts[2]}/{parts[3]}/{parts[4]}"
+        parts = href.strip('/').split('/')
+        if len(parts) >= 5:
+            user, repo, _, branch = parts[:4]
+            file_path = '/'.join(parts[4:])
+            raw_url = f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{file_path}"
+            print(f"获取文件: {raw_url}")
             return get_txt_from_raw_url(raw_url)
         else:
             print(f"路径格式异常: {href}")
