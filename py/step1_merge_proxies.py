@@ -1,26 +1,22 @@
 import requests
-from bs4 import BeautifulSoup
+import re
 
 def read_file(path):
     with open(path, 'r', encoding='utf-8') as f:
         return [line.rstrip('\n') for line in f]
 
-def extract_root_txt_links(repo_url):
+def extract_root_txt_raw_urls(repo_url):
     try:
         html = requests.get(repo_url).text
-        soup = BeautifulSoup(html, 'html.parser')
-        links = soup.select('a.js-navigation-open')
-        txt_files = []
-        for link in links:
-            href = link.get('href', '')
-            if href.endswith('.txt') and href.count('/') == 5:
-                # 只提取根路径下的 txt 文件（路径层级为 5）
-                parts = href.split('/')
-                if 'blob' in parts:
-                    blob_index = parts.index('blob')
-                    raw_url = f"https://raw.githubusercontent.com/{parts[1]}/{parts[2]}/{'/'.join(parts[blob_index+1:])}"
-                    txt_files.append(raw_url)
-        return txt_files
+        # 匹配根目录下的 txt 文件链接（不含子目录）
+        matches = re.findall(r'href="(/[^/]+/[^/]+/blob/[^/]+/[^/]+\.txt)"', html)
+        raw_urls = []
+        for href in matches:
+            parts = href.split('/')
+            if len(parts) == 5:  # 只处理根目录文件
+                raw_url = f"https://raw.githubusercontent.com/{parts[1]}/{parts[2]}/{parts[3]}/{parts[4]}"
+                raw_urls.append(raw_url)
+        return raw_urls
     except Exception as e:
         print(f"解析仓库失败: {repo_url} - {e}")
         return []
@@ -40,7 +36,7 @@ repos = dz_lines[split_index+1:]
 # 下载仓库中的 txt 文件内容
 repo_txts = []
 for repo in repos:
-    txt_links = extract_root_txt_links(repo)
+    txt_links = extract_root_txt_raw_urls(repo)
     for txt_url in txt_links:
         try:
             repo_txts.append(requests.get(txt_url).text)
