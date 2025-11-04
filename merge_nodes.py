@@ -40,15 +40,15 @@ def get_city_from_url(url):
     except:
         return "未知"
 
-def rename(line, google, speed):
-    label = f"{google}ms-D({speed}Mbps)"
+def rename(line, ping, speed):
+    label = f"P({ping}ms)-D({speed}Mbps)"
     if line.startswith("vmess://"):
         try:
             raw = line[8:]
             city = get_city_from_vmess(raw)
             decoded = base64.b64decode(raw + '=' * (-len(raw) % 4)).decode("utf-8")
             data = json.loads(decoded)
-            data["ps"] = f"{city}-G({label})"
+            data["ps"] = f"{city}-{label}"
             new_raw = base64.b64encode(json.dumps(data, separators=(',', ':')).encode()).decode().rstrip("=")
             return f"vmess://{new_raw}"
         except:
@@ -57,7 +57,7 @@ def rename(line, google, speed):
         try:
             url = line.split("#")[0]
             city = get_city_from_url(line)
-            return f"{url}#{city}-G({label})"
+            return f"{url}#{city}-{label}"
         except:
             return line
     else:
@@ -76,7 +76,7 @@ def main():
     for line in lines:
         item = line_map.get(line)
         if item:
-            renamed.append(rename(line, item["google"], item["speed"]))
+            renamed.append(rename(line, item["ping"], item["speed"]))
         else:
             renamed.append(line)
 
