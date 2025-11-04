@@ -26,14 +26,14 @@ jobs:
       - name: Step 2 - Convert v2.txt to Clash config.yaml
         run: python py/step2_convert_to_clash.py
 
-      - name: Step 3 - Test nodes and update config.yaml
+#      - name: Step 3 - Test nodes and update config.yaml
         run: sudo apt install -y curl && python py/step3_test_nodes.py
 
-      - name: Step 4 - Convert config.yaml to v2ray format
-        run: python py/step4_convert_to_v2ray.py
+#      - name: Step 4 - Convert config.yaml to v2ray format
+#        run: python py/step4_convert_to_v2ray.py
 
-      - name: Step 5 - Add city names to v2.txt
-        run: python py/step5_add_city_names.py
+#      - name: Step 5 - Add city names to v2.txt
+#        run: python py/step5_add_city_names.py
 
       - name: Commit changes
         run: |
