@@ -6,8 +6,8 @@ import time
 import urllib.parse
 import aiohttp
 
-GOOGLE_URL = "https://www.google.com/generate_204"
-DOWNLOAD_URL = "https://cachefly.cachefly.net/50mb.test"
+PING_URL = "https://www.baidu.com"
+DOWNLOAD_URL = "http://speedtest.ftp.360.cn/50MB.zip"
 
 def parse_node_url(url):
     try:
@@ -23,11 +23,11 @@ def parse_node_url(url):
     except:
         return None
 
-async def test_google_access(session):
+async def test_ping(session):
     try:
         start = time.time()
-        async with session.get(GOOGLE_URL, timeout=5) as resp:
-            if resp.status == 204:
+        async with session.get(PING_URL, timeout=5) as resp:
+            if resp.status == 200:
                 return int((time.time() - start) * 1000)
     except:
         return None
@@ -57,22 +57,22 @@ async def main():
             if not node:
                 continue
 
-            google_time = await test_google_access(session)
+            ping_time = await test_ping(session)
             download_speed = await test_download_speed(session)
 
-            if google_time is None:
-                print(f"❌ 无法访问 Google: {line[:30]}...")
+            if ping_time is None:
+                print(f"❌ 无法访问目标: {line[:30]}...")
                 continue
 
-            print(f"✅ Google: {google_time}ms | DL: {download_speed}Mbps")
+            print(f"✅ Ping: {ping_time}ms | DL: {download_speed}Mbps")
             results.append({
                 "line": line,
-                "google": google_time,
+                "ping": ping_time,
                 "speed": download_speed
             })
 
-    # 按 Google 延迟排序
-    results.sort(key=lambda x: x["google"])
+    # 按 ping 延迟排序
+    results.sort(key=lambda x: x["ping"])
 
     with open("v2.txt", "w", encoding="utf-8") as f:
         for item in results:
