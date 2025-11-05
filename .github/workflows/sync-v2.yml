@@ -3,7 +3,10 @@ name: Sync V2
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 2 * * *'  # 每天凌晨2点执行
+    - cron: '0 6 * * *'   # 每天 6:00
+    - cron: '0 12 * * *'  # 每天 12:00
+    - cron: '0 18 * * *'  # 每天 18:00
+    - cron: '0 0 * * *'   # 每天 24:00（即次日 0:00）
 
 jobs:
   sync-v2:
@@ -30,6 +33,6 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add v2.txt config.yaml
-          git commit -m "Update v2.txt and config.yaml"
+          git add v2.txt
+          git commit -m "Update v2.txt"
           git push
