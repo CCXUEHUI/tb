@@ -1,65 +1,43 @@
 import os
-import platform
 import requests
-import zipfile
 import subprocess
 import time
 import yaml
+import gzip
+import shutil
 
-CLASH_API = "http://127.0.0.1:9090"
+MIHOMO_URL = "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.15/mihomo-linux-arm64-v1.19.15.gz"
+MIHOMO_BIN = "mihomo"
 CONFIG_PATH = "config.yaml"
-CLASH_DIR = "clash_meta"
-CLASH_BIN = os.path.join(CLASH_DIR, "clash.meta.exe" if platform.system().lower() == "windows" else "clash.meta")
+CLASH_API = "http://127.0.0.1:9090"
+PROXY_PORT = 7890
 
-def get_system_arch():
-    sys = platform.system().lower()
-    arch = platform.machine().lower()
-    if 'windows' in sys:
-        sys = 'windows'
-    elif 'darwin' in sys:
-        sys = 'darwin'
-    elif 'linux' in sys:
-        sys = 'linux'
-    else:
-        raise Exception("Unsupported OS")
-    if arch in ['x86_64', 'amd64']:
-        arch = 'amd64'
-    elif arch in ['arm64', 'aarch64']:
-        arch = 'arm64'
-    else:
-        raise Exception("Unsupported architecture")
-    return sys, arch
+def download_and_prepare_mihomo():
+    if os.path.exists(MIHOMO_BIN):
+        print("已存在 mihomo 可执行文件，跳过下载")
+        return
+    print("下载 mihomo...")
+    r = requests.get(MIHOMO_URL, stream=True)
+    with open("mihomo.gz", "wb") as f:
+        for chunk in r.iter_content(chunk_size=8192):
+            f.write(chunk)
+    print("解压 mihomo.gz...")
+    with gzip.open("mihomo.gz", "rb") as f_in:
+        with open(MIHOMO_BIN, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    os.chmod(MIHOMO_BIN, 0o755)
+    print("mihomo 准备完成")
 
-def download_clash_meta():
-    sys, arch = get_system_arch()
-    print(f"检测系统: {sys}, 架构: {arch}")
-    api_url = "https://api.github.com/repos/MetaCubeX/Clash.Meta/releases/latest"
-    resp = requests.get(api_url)
-    assets = resp.json().get("assets", [])
-    for asset in assets:
-        name = asset["name"]
-        if sys in name and arch in name and name.endswith(".zip"):
-            url = asset["browser_download_url"]
-            print(f"下载 Clash.Meta: {name}")
-            clash_zip = "clash_meta.zip"
-            with open(clash_zip, "wb") as f:
-                f.write(requests.get(url).content)
-            with zipfile.ZipFile(clash_zip, 'r') as zip_ref:
-                zip_ref.extractall(CLASH_DIR)
-            os.chmod(CLASH_BIN, 0o755)
-            return
-    raise Exception("未找到匹配的 Clash.Meta 版本")
+def run_mihomo():
+    print("启动 mihomo...")
+    return subprocess.Popen([f"./{MIHOMO_BIN}", "-f", CONFIG_PATH])
 
-def run_clash():
-    print("启动 Clash...")
-    return subprocess.Popen([CLASH_BIN, "-f", CONFIG_PATH])
-
-def stop_clash(process):
+def stop_mihomo(process):
     if process:
         process.terminate()
-        print("Clash 已关闭")
+        print("mihomo 已关闭")
 
-def wait_for_clash_api(timeout=10):
+def wait_for_api(timeout=10):
     for _ in range(timeout):
         try:
             r = requests.get(f"{CLASH_API}/configs")
@@ -68,7 +46,7 @@ def wait_for_clash_api(timeout=10):
         except:
             pass
         time.sleep(1)
-    raise Exception("Clash API 启动失败")
+    raise Exception("mihomo API 启动失败")
 
 def switch_proxy(group, proxy_name):
     url = f"{CLASH_API}/proxies/{group}"
@@ -78,8 +56,8 @@ def test_google_latency():
     try:
         start = time.time()
         r = requests.get("https://www.google.com/generate_204", proxies={
-            "http": "http://127.0.0.1:7890",
-            "https": "http://127.0.0.1:7890"
+            "http": f"http://127.0.0.1:{PROXY_PORT}",
+            "https": f"http://127.0.0.1:{PROXY_PORT}"
         }, timeout=5)
         return int((time.time() - start) * 1000)
     except:
@@ -96,11 +74,10 @@ def update_config_names(latency_map):
         yaml.dump(config, f, allow_unicode=True, sort_keys=False)
 
 def main():
-    if not os.path.exists(CLASH_BIN):
-        download_clash_meta()
-    clash_process = run_clash()
+    download_and_prepare_mihomo()
+    process = run_mihomo()
     try:
-        wait_for_clash_api()
+        wait_for_api()
         proxies = requests.get(f"{CLASH_API}/proxies").json()
         groups = [k for k, v in proxies.items() if v['type'] == 'Selector']
         if not groups:
@@ -117,7 +94,7 @@ def main():
             latency_map[name] = latency
         update_config_names(latency_map)
     finally:
-        stop_clash(clash_process)
+        stop_mihomo(process)
 
 if __name__ == "__main__":
     main()
