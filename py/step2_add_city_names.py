@@ -3,13 +3,33 @@ import base64
 import json
 import requests
 import urllib.parse
+import zipfile
+import ip2location
 
-def get_city(ip):
+DB_URL = "https://download.ip2location.com/lite/IP2LOCATION-LITE-DB3.IPV4.BIN.ZIP"
+DB_ZIP = "IP2LOCATION-LITE-DB3.IPV4.BIN.ZIP"
+DB_BIN = "IP2LOCATION-LITE-DB3.IPV4.BIN"
+V2_PATH = os.path.join(os.getcwd(), "v2.txt")
+
+def download_ip2location_db():
+    if os.path.exists(DB_BIN):
+        print("IP2Location 数据库已存在，跳过下载")
+        return
+    print("正在下载 IP2Location 城市数据库...")
+    r = requests.get(DB_URL)
+    with open(DB_ZIP, "wb") as f:
+        f.write(r.content)
+    with zipfile.ZipFile(DB_ZIP, 'r') as zip_ref:
+        zip_ref.extractall(".")
+    os.remove(DB_ZIP)
+    print("数据库下载并解压完成")
+
+def get_city(ip, db):
     try:
-        r = requests.get(f'https://ipapi.co/{ip}/city/', timeout=5)
-        return r.text.strip()
+        rec = db.get_all(ip)
+        return rec.city if rec.city else "未知"
     except:
-        return '未知'
+        return "未知"
 
 def parse_ip_from_vmess(line):
     try:
@@ -39,13 +59,11 @@ def parse_ip_from_ss(line):
     try:
         raw = line[5:]
         if '@' in raw:
-            # ss://method:password@host:port
             parts = raw.split('@')
             host_port = parts[1]
             ip = host_port.split(':')[0]
             return ip, None
         else:
-            # ss://base64_encoded
             padded = raw + '=' * (-len(raw) % 4)
             decoded = base64.b64decode(padded).decode()
             if '@' in decoded:
@@ -66,8 +84,10 @@ def update_node_name(line, index, city, obj=None):
         return line
 
 def main():
-    input_path = os.path.join(os.getcwd(), "v2.txt")
-    with open(input_path, 'r', encoding='utf-8') as f:
+    download_ip2location_db()
+    db = ip2location.IP2Location(DB_BIN)
+
+    with open(V2_PATH, 'r', encoding='utf-8') as f:
         lines = [line.strip() for line in f if line.strip()]
 
     new_lines = []
@@ -85,14 +105,14 @@ def main():
             print(f"跳过不支持的格式: {line}")
             continue
 
-        city = get_city(ip) if ip else "未知"
+        city = get_city(ip, db) if ip else "未知"
         new_line = update_node_name(line, idx, city, obj)
         new_lines.append(new_line)
 
-    with open(input_path, 'w', encoding='utf-8') as f:
+    with open(V2_PATH, 'w', encoding='utf-8') as f:
         f.write('\n'.join(new_lines))
 
-    print("节点名称已更新为 序号-城市 格式")
+    print("✅ 节点名称已更新为 序号-城市（使用本地数据库）")
 
 if __name__ == "__main__":
     main()
