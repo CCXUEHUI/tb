@@ -6,7 +6,7 @@ import yaml
 import gzip
 import shutil
 
-MIHOMO_URL = "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.15/mihomo-linux-arm64-v1.19.15.gz"
+MIHOMO_URL = "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.15/mihomo-linux-amd64-v1.19.15.gz"
 MIHOMO_BIN = "mihomo"
 CONFIG_PATH = "config.yaml"
 CLASH_API = "http://127.0.0.1:9090"
