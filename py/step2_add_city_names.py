@@ -6,6 +6,7 @@ import urllib.parse
 import zipfile
 import ip2location
 
+# 数据库下载地址和文件名
 DB_URL = "https://download.ip2location.com/lite/IP2LOCATION-LITE-DB3.IPV4.BIN.ZIP"
 DB_ZIP = "IP2LOCATION-LITE-DB3.IPV4.BIN.ZIP"
 DB_BIN = "IP2LOCATION-LITE-DB3.IPV4.BIN"
@@ -13,21 +14,24 @@ V2_PATH = os.path.join(os.getcwd(), "v2.txt")
 
 def download_ip2location_db():
     if os.path.exists(DB_BIN):
-        print("IP2Location 数据库已存在，跳过下载")
+        print("✅ IP2Location 数据库已存在，跳过下载")
         return
-    print("正在下载 IP2Location 城市数据库...")
-    r = requests.get(DB_URL)
+    print("⬇️ 正在下载 IP2Location 城市数据库...")
+    headers = {"User-Agent": "Mozilla/5.0"}
+    r = requests.get(DB_URL, headers=headers, timeout=10)
     with open(DB_ZIP, "wb") as f:
         f.write(r.content)
+    if not zipfile.is_zipfile(DB_ZIP):
+        raise Exception("❌ 下载的文件不是有效的 ZIP 格式")
     with zipfile.ZipFile(DB_ZIP, 'r') as zip_ref:
         zip_ref.extractall(".")
     os.remove(DB_ZIP)
-    print("数据库下载并解压完成")
+    print("✅ 数据库下载并解压完成")
 
 def get_city(ip, db):
     try:
         rec = db.get_all(ip)
-        return rec.city if rec.city else "未知"
+        return rec.city or "未知"
     except:
         return "未知"
 
@@ -87,6 +91,10 @@ def main():
     download_ip2location_db()
     db = ip2location.IP2Location(DB_BIN)
 
+    if not os.path.exists(V2_PATH):
+        print("❌ 未找到 v2.txt 文件")
+        return
+
     with open(V2_PATH, 'r', encoding='utf-8') as f:
         lines = [line.strip() for line in f if line.strip()]
 
@@ -102,7 +110,7 @@ def main():
         elif line.startswith("ss://"):
             ip, obj = parse_ip_from_ss(line)
         else:
-            print(f"跳过不支持的格式: {line}")
+            print(f"⚠️ 跳过不支持的格式: {line}")
             continue
 
         city = get_city(ip, db) if ip else "未知"
