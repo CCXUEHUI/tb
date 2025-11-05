@@ -1,4 +1,5 @@
 import os
+import platform
 import requests
 import subprocess
 import time
@@ -6,18 +7,27 @@ import yaml
 import gzip
 import shutil
 
-MIHOMO_URL = "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.15/mihomo-linux-amd64-v1.19.15.gz"
-MIHOMO_BIN = "mihomo"
 CONFIG_PATH = "config.yaml"
 CLASH_API = "http://127.0.0.1:9090"
 PROXY_PORT = 7890
+MIHOMO_BIN = "mihomo"
+
+def get_mihomo_url():
+    arch = platform.machine().lower()
+    if arch in ['x86_64', 'amd64']:
+        return "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.15/mihomo-linux-amd64-v1.19.15.gz"
+    elif arch in ['arm64', 'aarch64']:
+        return "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.15/mihomo-linux-arm64-v1.19.15.gz"
+    else:
+        raise Exception(f"不支持的架构: {arch}")
 
 def download_and_prepare_mihomo():
     if os.path.exists(MIHOMO_BIN):
         print("已存在 mihomo 可执行文件，跳过下载")
         return
-    print("下载 mihomo...")
-    r = requests.get(MIHOMO_URL, stream=True)
+    url = get_mihomo_url()
+    print(f"下载 mihomo: {url}")
+    r = requests.get(url, stream=True)
     with open("mihomo.gz", "wb") as f:
         for chunk in r.iter_content(chunk_size=8192):
             f.write(chunk)
