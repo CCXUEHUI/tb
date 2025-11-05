@@ -1,5 +1,0 @@
-claw日本-9999ms
-|RFC|Clawᵒᵘᵗ-9999ms
-|RFC|HKCO-9999ms
-|RFC|JPCO-9999ms
-|RFC|JPCOᵒᵘᵗ-9999ms
