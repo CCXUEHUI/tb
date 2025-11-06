@@ -6,25 +6,24 @@ import requests
 from queue import Queue
 
 INPUT_FILE = 'v2.txt'
-OUTPUT_FILE = 'v2_tested.txt'
 MAX_THREADS = 50
 TEST_PORT = 443
 TEST_TIMEOUT = 3
-TOP_NODES = 50
+TOP_NODES = 30
 
 # 正则提取协议和域名/IP
-NODE_REGEX = re.compile(r'^(?P<protocol>vless|vmess|trojan|ss)://(?P<rest>.+)')
+NODE_REGEX = re.compile(r'^(?P<protocol>vless|vmess|trojan|ss)://(?P<rest>.+)', re.IGNORECASE)
 HOST_REGEX = re.compile(r'@(?P<host>[^:]+)')
 
 def extract_info(line):
     match = NODE_REGEX.match(line)
     if not match:
         return None, None
-    protocol = match.group('protocol')
+    protocol = match.group('protocol').upper()
     rest = match.group('rest')
     host_match = HOST_REGEX.search(rest)
     host = host_match.group('host') if host_match else None
-    return protocol.upper(), host
+    return protocol, host
 
 def test_latency(host):
     try:
@@ -84,14 +83,13 @@ class NodeTester:
             t.join()
 
         self.results.sort(key=lambda x: x[3] if x[3] is not None else float('inf'))
-        self.save_results()
+        self.save_top_nodes()
 
-    def save_results(self):
-        with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
+    def save_top_nodes(self):
+        with open(INPUT_FILE, 'w', encoding='utf-8') as f:
             for idx, (line, protocol, host, latency, location) in enumerate(self.results[:TOP_NODES], 1):
                 tag = f"{latency}ms" if latency is not None else "timeout"
                 new_name = f"{idx:02d}_{location}_{tag}"
-                # 替换节点名称部分（尾部 # 或添加 #）
                 if '#' in line:
                     line = re.sub(r'#.*$', f'#{new_name}', line)
                 else:
