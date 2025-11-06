@@ -30,6 +30,12 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add v2.txt
-          git commit -m "Update v2.txt"
-          git push
+
+          # 检查是否有变更
+          if ! git diff --quiet; then
+            git add v2.txt
+            git commit -m "Update v2.txt"
+            git push
+          else
+            echo "No changes to commit or push."
+          fi
