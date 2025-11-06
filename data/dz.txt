@@ -3,4 +3,3 @@ https://raw.githubusercontent.com/topgoodness/sub/refs/heads/main/i
 https://github.com/major-118/subscriptions
 https://raw.githubusercontent.com/medicandong/mibei/refs/heads/main/subscription.txt
 https://raw.githubusercontent.com/gslege/CloudflareIP/refs/heads/main/Nodes.txt
-https://raw.githubusercontent.com/gslege/CloudflareIP/refs/heads/main/Vless.txt
