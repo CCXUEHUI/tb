@@ -1,12 +1,12 @@
 name: Sync V2
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '0 6 * * *'   # 每天 6:00
-    - cron: '0 12 * * *'  # 每天 12:00
-    - cron: '0 18 * * *'  # 每天 18:00
-    - cron: '0 0 * * *'   # 每天 24:00（即次日 0:00）
+    - cron: '0 16 * * *'  # 中国时间 00:00
+    - cron: '0 22 * * *'  # 中国时间 06:00
+    - cron: '0 4  * * *'  # 中国时间 12:00
+    - cron: '0 10 * * *'  # 中国时间 18:00
+  workflow_dispatch:
 
 jobs:
   sync-v2:
