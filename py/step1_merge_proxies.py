@@ -1,13 +1,28 @@
 import requests
 import re
+import base64
 
 def read_file(path):
     with open(path, 'r', encoding='utf-8') as f:
         return [line.strip() for line in f if line.strip()]
 
+def decode_if_base64(text):
+    try:
+        # 尝试解码，如果失败则返回原始文本
+        decoded = base64.b64decode(text, validate=True).decode('utf-8')
+        # 如果解码后仍然是文本格式，返回解码结果
+        if decoded.strip():
+            print("检测到 Base64 编码，已解码")
+            return decoded
+    except Exception:
+        pass
+    return text
+
 def get_txt_from_raw_url(url):
     try:
-        return requests.get(url, timeout=10).text
+        response = requests.get(url, timeout=10)
+        raw_text = response.text
+        return decode_if_base64(raw_text)
     except Exception as e:
         print(f"下载失败: {url} - {e}")
         return ''
@@ -15,12 +30,10 @@ def get_txt_from_raw_url(url):
 def get_latest_txt_from_github_repo(repo_url):
     try:
         html = requests.get(repo_url, timeout=10).text
-        # 匹配根目录下的 .txt 文件链接（支持 main 或 master 分支）
         matches = re.findall(r'href="(/[^/]+/[^/]+/blob/(main|master)/[^/]+\.txt)"', html)
         if not matches:
             print(f"仓库中未找到根目录下的 .txt 文件: {repo_url}")
             return ''
-        # 取第一个匹配项作为最新提交的文件
         href = matches[0][0]
         parts = href.strip('/').split('/')
         if len(parts) >= 5:
