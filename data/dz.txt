@@ -1,3 +1,4 @@
 https://raw.githubusercontent.com/topgoodness/sub/refs/heads/main/i
 https://github.com/major-118/subscriptions
 https://raw.githubusercontent.com/gslege/CloudflareIP/refs/heads/main/Vless.txt
+https://raw.githubusercontent.com/moneyfly004/v2rayspeedtest/refs/heads/master/v2ray_raw.txt
