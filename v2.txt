@@ -16,11 +16,16 @@ vless://4406c5e4-bf55-43d2-80b2-c339f352f722@94.159.103.159:2443?type=ws&encrypt
 vless://20d3359c-be91-4def-ab5d-5860b8d720bf@major.qzz.io:443?security=tls&sni=major.qzz.io&alpn=h2&fp=firefox&type=grpc&serviceName=gun&packetEncoding=xudp&encryption=none#Germany [H2 VLESS gRPC CDN]
 vless://20d3359c-be91-4def-ab5d-5860b8d720bf@172.67.215.241:443?security=tls&sni=major.qzz.io&alpn=h2&fp=firefox&type=grpc&serviceName=gun&packetEncoding=xudp&encryption=none#H2%20VLESS%20gRPC%20CDN
 vless://948e09fa-228c-4531-8bb3-6f30b222e0cb@89.110.82.136:443?security=reality&sni=nu.nl&fp=chrome&pbk=bcODgL8bCXDOaQs4--4okAHZzX1OwC06rkwZsQ3mqHk&sid=a18b3b9be3a7&type=tcp&flow=xtls-rprx-vision&packetEncoding=xudp&encryption=none#Netherlands [VDSina VLESS]
-ss://YWVzLTEyOC1nY206ZTAzMDhhNTMtYzdhOC00ZjcwLThhMDQtMjY5ZjhmZWQxNjMw@sg.fasthou.icu:33118#🇸🇬 新加坡SG02-专线中继 [445ms]
-ss://YWVzLTEyOC1nY206NzlhZDI4NTItZWI3Ni00YzNlLWJhNGQtMzY2OGVlNWVjZTc0@wujiejapan02.singdns.com:21712#日本 [708ms]
-ss://YWVzLTEyOC1nY206NzlhZDI4NTItZWI3Ni00YzNlLWJhNGQtMzY2OGVlNWVjZTc0@hkg24-20250621190455900606.singdns.com:23342#香港 [2569ms]
-vmess://eyJ2IjogIjIiLCAicHMiOiAiVjEtXHU2NWU1XHU2NzJjOTggQ0ROXHU5NmE3XHU5MDUzIDN4IFs3NzZtc10iLCAiYWRkIjogInB1Yi5hcDIwMjUwOTA5Lnh5eiIsICJwb3J0IjogIjY0MDA1IiwgImlkIjogIjEzMDc2ODhlLWE3Y2EtMzI1ZC1hOGEyLWViYTRmM2IxOTUyYyIsICJhaWQiOiAiMCIsICJuZXQiOiAidGNwIiwgInR5cGUiOiAidm1lc3MiLCAidGxzIjogIiJ9
-vmess://eyJ2IjogIjIiLCAicHMiOiAiVjEtXHU2NWU1XHU2NzJjQSBcdTk2YTdcdTkwNTMgMS42eCBbMzY2bXNdIiwgImFkZCI6ICJwdWIuYXAyMDI1MDkwOS54eXoiLCAicG9ydCI6ICI2NDAxMSIsICJpZCI6ICIxMzA3Njg4ZS1hN2NhLTMyNWQtYThhMi1lYmE0ZjNiMTk1MmMiLCAiYWlkIjogIjAiLCAibmV0IjogInRjcCIsICJ0eXBlIjogInZtZXNzIiwgInRscyI6ICIifQ==
-vmess://eyJ2IjogIjIiLCAicHMiOiAiVjItUFJPIFx1NjVlNVx1NjcyY0EgM3ggWzQ2Mm1zXSIsICJhZGQiOiAicHJvLmFwMjAyNTA5MDkueHl6IiwgInBvcnQiOiAiMzMwNCIsICJpZCI6ICIxMzA3Njg4ZS1hN2NhLTMyNWQtYThhMi1lYmE0ZjNiMTk1MmMiLCAiYWlkIjogIjAiLCAibmV0IjogInRjcCIsICJ0eXBlIjogInZtZXNzIiwgInRscyI6ICIifQ==
-vmess://eyJ2IjogIjIiLCAicHMiOiAiVjItXHU5OTk5XHU2ZTJmRkRDMDEgXHU5NmE3XHU5MDUzIDJ4IFs0Nzdtc10iLCAiYWRkIjogInB1Yi5hcDIwMjUwOTA5Lnh5eiIsICJwb3J0IjogIjY0MDkwIiwgImlkIjogIjEzMDc2ODhlLWE3Y2EtMzI1ZC1hOGEyLWViYTRmM2IxOTUyYyIsICJhaWQiOiAiMCIsICJuZXQiOiAidGNwIiwgInR5cGUiOiAidm1lc3MiLCAidGxzIjogIiJ9
-ss://YWVzLTEyOC1nY206NzlhZDI4NTItZWI3Ni00YzNlLWJhNGQtMzY2OGVlNWVjZTc0@hkg24-20250621185858bb8394.singdns.com:23341#香港流媒体专享 [4434ms]
+ss://YWVzLTEyOC1nY206NzlhZDI4NTItZWI3Ni00YzNlLWJhNGQtMzY2OGVlNWVjZTc0@wujiejapan02.singdns.com:21712#日本 [494ms]
+ss://YWVzLTEyOC1nY206YTdiMDkwNWYtNzZjNS00ZDU4LTlhYmUtYzIxYjI3MzFmYWZj@sg.fasthou.icu:33111#🇭🇰 香港HK01-专线中继 [559ms]
+ss://YWVzLTEyOC1nY206YTdiMDkwNWYtNzZjNS00ZDU4LTlhYmUtYzIxYjI3MzFmYWZj@sg.fasthou.icu:33112#🇭🇰 香港HK02-专线中继 [550ms]
+ss://YWVzLTEyOC1nY206YTdiMDkwNWYtNzZjNS00ZDU4LTlhYmUtYzIxYjI3MzFmYWZj@sg.fasthou.icu:33117#🇸🇬 新加坡SG01-专线中继 [602ms]
+ss://YWVzLTEyOC1nY206YTdiMDkwNWYtNzZjNS00ZDU4LTlhYmUtYzIxYjI3MzFmYWZj@sg.fasthou.icu:33115#🇯🇵 日本JP01-专线中继 [640ms]
+ss://YWVzLTEyOC1nY206YTdiMDkwNWYtNzZjNS00ZDU4LTlhYmUtYzIxYjI3MzFmYWZj@sg.fasthou.icu:33119#🇺🇸 美国US01-专线中继 [712ms]
+ss://YWVzLTEyOC1nY206YTdiMDkwNWYtNzZjNS00ZDU4LTlhYmUtYzIxYjI3MzFmYWZj@sg.fasthou.icu:33122#🇲🇾 狮城01-专线中继 [1689ms]
+ss://YWVzLTEyOC1nY206NzlhZDI4NTItZWI3Ni00YzNlLWJhNGQtMzY2OGVlNWVjZTc0@hkg24-20250621185858bb8394.singdns.com:23341#香港流媒体专享 [1972ms]
+ss://YWVzLTEyOC1nY206NzlhZDI4NTItZWI3Ni00YzNlLWJhNGQtMzY2OGVlNWVjZTc0@hkg24-20250621190455900606.singdns.com:23342#香港 [2220ms]
+vmess://eyJ2IjogIjIiLCAicHMiOiAiVjEtXHU1M2YwXHU2ZTdlMDEgXHU5NmE3XHU5MDUzIDEuNXggWzYxMm1zXSIsICJhZGQiOiAicHViLmFwMjAyNTA5MDkueHl6IiwgInBvcnQiOiAiNjQwMTgiLCAiaWQiOiAiMTMwNzY4OGUtYTdjYS0zMjVkLWE4YTItZWJhNGYzYjE5NTJjIiwgImFpZCI6ICIwIiwgIm5ldCI6ICJ0Y3AiLCAidHlwZSI6ICJ2bWVzcyIsICJ0bHMiOiAiIn0=
+vmess://eyJ2IjogIjIiLCAicHMiOiAiVjEtXHU2NWU1XHU2NzJjQSBcdTk2YTdcdTkwNTMgMS42eCBbMjUxbXNdIiwgImFkZCI6ICJwdWIuYXAyMDI1MDkwOS54eXoiLCAicG9ydCI6ICI2NDAxMSIsICJpZCI6ICIxMzA3Njg4ZS1hN2NhLTMyNWQtYThhMi1lYmE0ZjNiMTk1MmMiLCAiYWlkIjogIjAiLCAibmV0IjogInRjcCIsICJ0eXBlIjogInZtZXNzIiwgInRscyI6ICIifQ==
+vmess://eyJ2IjogIjIiLCAicHMiOiAiVjItXHU5OTk5XHU2ZTJmRkRDMDEgXHU5NmE3XHU5MDUzIDJ4IFszNDltc10iLCAiYWRkIjogInB1Yi5hcDIwMjUwOTA5Lnh5eiIsICJwb3J0IjogIjY0MDkwIiwgImlkIjogIjEzMDc2ODhlLWE3Y2EtMzI1ZC1hOGEyLWViYTRmM2IxOTUyYyIsICJhaWQiOiAiMCIsICJuZXQiOiAidGNwIiwgInR5cGUiOiAidm1lc3MiLCAidGxzIjogIiJ9
+vmess://eyJ2IjogIjIiLCAicHMiOiAiVjItUFJPIFx1NjVlNVx1NjcyY0EgM3ggWzQ5NG1zXSIsICJhZGQiOiAicHJvLmFwMjAyNTA5MDkueHl6IiwgInBvcnQiOiAiMzMwNCIsICJpZCI6ICIxMzA3Njg4ZS1hN2NhLTMyNWQtYThhMi1lYmE0ZjNiMTk1MmMiLCAiYWlkIjogIjAiLCAibmV0IjogInRjcCIsICJ0eXBlIjogInZtZXNzIiwgInRscyI6ICIifQ==
