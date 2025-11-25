@@ -1,2 +1,2 @@
 vmess://eyJhZGQiOiIyNDBiOjQwMDk6MjVhOjE4MDE6MDpjMmZhOjNmNjM6Y2ZlZCIsImFpZCI6IjAiLCJhbHBuIjoiIiwiZnAiOiIiLCJob3N0IjoiIiwiaWQiOiIzYTJlZjdmZC00NGRhLTRlMjktODkxNi03MzU0MTg4NDM0MTkiLCJuZXQiOiJ0Y3AiLCJwYXRoIjoiIiwicG9ydCI6IjE4MTI0IiwicHMiOiJjbGF35pel5pysIiwic2N5IjoiYXV0byIsInNuaSI6IiIsInRscyI6IiIsInR5cGUiOiJub25lIiwidiI6IjIifQ==
-ss://YWVzLTEyOC1nY206aWYxQmRQVWxOMzZnOCtXcUtIdnpPS05wQUp2MlVxTlE0NGJpSmVabWhHTT0%3D@[240b:4009:25a:1801:0:c2fa:3f63:cfed]:57835#%E6%97%A5%E6%9C%AC%E8%BD%AC%E5%8F%B0%E6%B9%BE
+vless://33610372-fefc-456f-a3f2-5d65a48805ab@212.129.2.4:33887?encryption=none&security=reality&sni=mora.jp&fp=chrome&pbk=pk-jNQMhO1bmyp8Ml2lpPj_gHXNVsVzR9TzsraF-bnc&sid=6f16ae83145d45a5&spx=%2F&type=xhttp&path=%2Fgithub.com%2FAlvin9999#VLESS%E8%8A%82%E7%82%B91-xhttp-reality
