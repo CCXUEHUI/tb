@@ -1,4 +1,3 @@
 https://raw.githubusercontent.com/topgoodness/sub/refs/heads/main/i
 https://github.com/major-118/subscriptions
-https://github.com/subsnpv/sub/tree/main
 https://raw.githubusercontent.com/Loischsiy/server-subscribers/refs/heads/main/main-subscribers.txt
