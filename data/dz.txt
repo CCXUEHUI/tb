@@ -1,3 +1,2 @@
-https://raw.githubusercontent.com/KINGHY02/jiedian-name/refs/heads/main/nodes.txt
 https://raw.githubusercontent.com/topgoodness/sub/refs/heads/main/i
-https://raw.githubusercontent.com/Keen-Bypass/keen_bypass_win/refs/heads/main/vless.txt
+https://raw.githubusercontent.com/hadidadkhodaei/hadidadkhodaei.github.io/refs/heads/main/v2rayNG/sub.txt
