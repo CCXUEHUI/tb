@@ -12,7 +12,7 @@ HEADERS = {
     "Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}"
 }
 
-def get_latest_repos(n=10):
+def get_latest_repos(n=60):
     resp = requests.get(API_URL, headers=HEADERS,
                         params={"per_page": n, "sort": "updated", "direction": "desc"})
     resp.raise_for_status()
