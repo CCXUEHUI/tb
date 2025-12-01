@@ -24,6 +24,8 @@ jobs:
           pip install requests
 
       - name: Run update script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python py/fast.py
 
       - name: Commit and push changes
