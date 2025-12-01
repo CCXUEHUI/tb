@@ -1,6 +1,2 @@
 https://raw.githubusercontent.com/topgoodness/sub/refs/heads/main/i
 https://raw.githubusercontent.com/hadidadkhodaei/hadidadkhodaei.github.io/refs/heads/main/v2rayNG/sub.txt
-https://raw.githubusercontent.com/valvatacea/cfa-config/refs/heads/main/byu%20opok%20(v2ray).txt
-https://raw.githubusercontent.com/nattapon23/BOSSVPN/refs/heads/main/V2RAY.txt
-https://raw.githubusercontent.com/Loischsiy/server-subscribers/refs/heads/main/main-subscribers.txt
-https://raw.githubusercontent.com/dyslab/jnb-sample/refs/heads/master/v2ray_toolkit/fetch-wz2023jd.txt
