@@ -12,14 +12,21 @@ HEADERS = {
     "Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}"
 }
 
-def get_latest_repos(n=30):
-    resp = requests.get(API_URL, headers=HEADERS,
-                        params={"per_page": n, "sort": "updated", "direction": "desc"})
-    resp.raise_for_status()
-    repos = resp.json()
-    names = [repo["name"] for repo in repos]
-    print(f"Latest repos to process (count={len(names)}): {', '.join(names)}")
-    return names
+def get_latest_repos(n=60):
+    repos = []
+    page = 1
+    while len(repos) < n:
+        resp = requests.get(API_URL, headers=HEADERS,
+                            params={"per_page": 30, "page": page,
+                                    "sort": "updated", "direction": "desc"})
+        resp.raise_for_status()
+        batch = resp.json()
+        if not batch:
+            break
+        repos.extend([repo["name"] for repo in batch])
+        page += 1
+    return repos[:n]
+
 
 def get_repo_file_inner_text(repo):
     """
