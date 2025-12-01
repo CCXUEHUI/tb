@@ -19,7 +19,7 @@ jobs:
           python-version: '3.x'
 
       - name: Run update script
-        run: python py/fast.py
+        run: python fast.py
 
       - name: Commit and push changes
         run: |
