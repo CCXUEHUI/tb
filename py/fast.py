@@ -17,8 +17,10 @@ def get_latest_repos(n=60):
     page = 1
     while len(repos) < n:
         resp = requests.get(API_URL, headers=HEADERS,
-                            params={"per_page": 100, "page": page,
-                                    "sort": "updated", "direction": "desc"})
+                    params={"per_page": 100, "page": 1,
+                            "sort": "updated", "direction": "desc"})
+        print(len(resp.json()))
+
         resp.raise_for_status()
         batch = resp.json()
         if not batch:
