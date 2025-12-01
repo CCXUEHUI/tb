@@ -1,6 +1,8 @@
 import requests
 import base64
 import os
+import json
+import re
 
 ORG = "socks-tjzjtm"
 API_URL = f"https://api.github.com/orgs/{ORG}/repos"
@@ -21,7 +23,6 @@ def get_single_file_content(repo):
         file_info = files[0]
         encoded = file_info.get("content", "")
         if encoded:
-            # GitHub API 返回的 content 是 base64 编码
             decoded = base64.b64decode(encoded).decode("utf-8", errors="ignore")
             return decoded
         elif "download_url" in file_info:
@@ -29,25 +30,57 @@ def get_single_file_content(repo):
             return raw
     return ""
 
+def extract_node_name(node_str):
+    """
+    根据不同协议提取节点名称，用于去重。
+    """
+    try:
+        if node_str.startswith("vmess://"):
+            payload = node_str[len("vmess://"):]
+            decoded_json = base64.b64decode(payload).decode("utf-8", errors="ignore")
+            data = json.loads(decoded_json)
+            return data.get("ps", node_str)
+        elif node_str.startswith("vless://") or node_str.startswith("trojan://"):
+            # vless/trojan URI 格式通常是 user@host:port#name
+            match = re.search(r"#(.+)$", node_str)
+            return match.group(1) if match else node_str
+        elif node_str.startswith("ss://"):
+            # ss URI 格式通常是 ss://base64 或 ss://method:password@host:port#name
+            match = re.search(r"#(.+)$", node_str)
+            return match.group(1) if match else node_str
+        elif node_str.startswith("hysteria://"):
+            # hysteria URI 格式也可能带 #name
+            match = re.search(r"#(.+)$", node_str)
+            return match.group(1) if match else node_str
+        else:
+            return node_str
+    except Exception:
+        return node_str
+
 def main():
     repos = get_latest_repos(10)
-    all_nodes = []
+    nodes = []
+    seen_names = set()
 
     for repo in repos:
         print(f"Processing repository: {repo}")
         content = get_single_file_content(repo)
         repo_nodes = [line.strip() for line in content.splitlines() if line.strip()]
-        print(f"  Decoded {len(repo_nodes)} nodes from {repo}")
-        all_nodes.extend(repo_nodes)
+        print(f"  Decoded {len(repo_nodes)} raw lines from {repo}")
 
-    # 去重
-    unique_nodes = sorted(set(all_nodes))
-    print(f"Total unique nodes collected: {len(unique_nodes)}")
+        for node in repo_nodes:
+            name = extract_node_name(node)
+            if name not in seen_names:
+                seen_names.add(name)
+                nodes.append(node)
 
-    # 写入 fast.txt
+    print(f"Total unique nodes collected (by name): {len(nodes)}")
+
+    # 写入 fast.txt，每行一个明文节点
     with open("fast.txt", "w", encoding="utf-8") as f:
-        for node in unique_nodes:
+        for node in nodes:
             f.write(node + "\n")
+
     print("fast.txt updated successfully.")
 
 if __name__ == "__main__":
