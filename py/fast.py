@@ -12,23 +12,37 @@ HEADERS = {
     "Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}"
 }
 
-def get_latest_repos(n=60):
+def get_all_repos():
+    """
+    分页获取组织的所有仓库，直到没有更多。
+    """
     repos = []
     page = 1
-    while len(repos) < n:
+    while True:
         resp = requests.get(API_URL, headers=HEADERS,
                             params={"per_page": 100, "page": page})
+        resp.raise_for_status()
         batch = resp.json()
         if not batch:
             break
-        repos.extend([repo["name"] for repo in batch])
+        repos.extend(batch)
         page += 1
-    return repos[:n]
+    return repos
 
+def get_latest_repos(n=60):
+    """
+    获取最新更新的 n 个仓库。
+    """
+    repos = get_all_repos()
+    # 按更新时间排序
+    repos.sort(key=lambda r: r["updated_at"], reverse=True)
+    names = [repo["name"] for repo in repos[:n]]
+    print(f"Latest {len(names)} repos: {', '.join(names)}")
+    return names
 
 def get_repo_file_inner_text(repo):
     """
-    每个仓库只有一个文件，该文件内容通过 GitHub API 返回为 base64（外层）。
+    每个仓库只有一个文件，该文件内容是 base64（外层）。
     文件内只有一行，这一行又是 base64（内层，订阅内容）。
     需要两次解码：外层 -> 单行 base64 -> 内层明文节点列表。
     """
@@ -44,14 +58,12 @@ def get_repo_file_inner_text(repo):
     file_info = files[0]
     outer_encoded = file_info.get("content", "")
     if not outer_encoded:
-        # fallback: download_url（但通常 content 会存在）
         dl = file_info.get("download_url")
         if not dl:
             print(f"  WARN: {repo} file has neither content nor download_url.")
             return ""
         outer_text = requests.get(dl, headers=HEADERS).text
     else:
-        # 外层 base64 -> 得到单行内层 base64
         outer_text = base64.b64decode(outer_encoded).decode("utf-8", errors="ignore")
 
     inner_line = outer_text.strip()
@@ -59,7 +71,6 @@ def get_repo_file_inner_text(repo):
         print(f"  WARN: {repo} outer decoded is empty.")
         return ""
 
-    # 内层 base64 -> 明文节点列表（多行）
     try:
         inner_text = base64.b64decode(inner_line).decode("utf-8", errors="ignore")
         return inner_text
@@ -69,32 +80,21 @@ def get_repo_file_inner_text(repo):
 
 def extract_node_name(node_str):
     """
-    提取节点名称用于去重：
-    - vmess://base64(JSON) -> JSON 中的 'ps'
-    - vless/trojan/ss/hysteria URI -> 使用 #fragment 作为名称；若无则使用 host 作为回退
-    - 其他协议 -> 使用 #fragment 或整行
+    提取节点名称用于去重。
     """
     try:
         if node_str.startswith("vmess://"):
             payload = node_str[len("vmess://"):]
             decoded_json = base64.b64decode(payload).decode("utf-8", errors="ignore")
             data = json.loads(decoded_json)
-            name = data.get("ps")
-            if name:
-                return name.strip()
-            # 回退：host 或整行
-            host = data.get("add") or ""
-            return host.strip() or node_str
+            return data.get("ps", node_str)
         else:
-            # 通用 URI 解析
             parsed = urlparse(node_str)
             if parsed.fragment:
                 return parsed.fragment.strip()
-            # 某些 ss 可能是 ss://method:pass@host:port，没有 fragment；用 host 作为回退
             host = parsed.hostname or ""
             if host:
                 return host.strip()
-            # 再回退：如果是形如 "...#name" 手动正则抓取
             m = re.search(r"#(.+)$", node_str)
             if m:
                 return m.group(1).strip()
@@ -103,7 +103,7 @@ def extract_node_name(node_str):
         return node_str
 
 def main():
-    repos = get_latest_repos(10)
+    repos = get_latest_repos(60)  # 这里可以改成任意数量
     all_nodes = []
     seen_names = set()
 
@@ -111,29 +111,27 @@ def main():
         print(f"Processing repository: {repo}")
         inner_text = get_repo_file_inner_text(repo)
         if not inner_text:
-            print(f"  WARN: {repo} produced empty inner text.")
             continue
 
         lines = [ln.strip() for ln in inner_text.splitlines() if ln.strip()]
-        print(f"  Decoded inner lines: {len(lines)}")
+        print(f"  Decoded {len(lines)} inner lines from {repo}")
 
         added = 0
         for node in lines:
             name = extract_node_name(node)
             if name not in seen_names:
                 seen_names.add(name)
-                all_nodes.append(node)  # 写入明文节点（不再 base64）
+                all_nodes.append(node)
                 added += 1
-        print(f"  Unique by name added from {repo}: {added}")
+        print(f"  Unique nodes added from {repo}: {added}")
 
-    print(f"Total unique nodes collected (by name): {len(all_nodes)}")
+    print(f"Total unique nodes collected: {len(all_nodes)}")
 
-    # 写入 fast.txt（在所有处理完成后统一写入）
     with open("fast.txt", "w", encoding="utf-8") as f:
         for node in all_nodes:
             f.write(node + "\n")
 
-    print("fast.txt updated successfully with plain decoded nodes.")
+    print("fast.txt updated successfully.")
 
 if __name__ == "__main__":
     main()
