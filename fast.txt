@@ -1,3 +1,4 @@
+b,(
 vless://11ec7fe5-a971-4ae7-833a-d766aded8cd4@3bd9.55dca.e048.f6-fef1f.yfjcs.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=osxapps.itunes.apple.com&fp=ios&pbk=OpOPkgvdODyl87_5Yd4gJlaSD1Bc10TVjLlzKNHx40k&sid=5ab35065&type=tcp&headerType=none#UPDATE%201211
 hysteria2://11ec7fe5-a971-4ae7-833a-d766aded8cd4@203.10.98.187:20000/?sni=www.bing.com&insecure=1#%F0%9F%87%AF%F0%9F%87%B5Japan_Dedicated_Line-0.1x_Rate
 hysteria2://11ec7fe5-a971-4ae7-833a-d766aded8cd4@203.10.99.211:20000/?sni=www.bing.com&insecure=1#%F0%9F%87%AF%F0%9F%87%B5Japan_Dedicated_Line_2-0.1x_Rate
