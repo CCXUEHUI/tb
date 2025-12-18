@@ -29,7 +29,7 @@ def get_all_repos():
         page += 1
     return repos
 
-def get_latest_repos(n=30):
+def get_latest_repos(n=10):
     """
     获取最新更新的 n 个仓库。
     """
