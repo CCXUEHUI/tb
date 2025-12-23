@@ -1,2 +1,4 @@
 https://raw.githubusercontent.com/topgoodness/sub/refs/heads/main/i
 https://raw.githubusercontent.com/hadidadkhodaei/hadidadkhodaei.github.io/refs/heads/main/v2rayNG/sub.txt
+https://raw.githubusercontent.com/vladivanov2004/pass/refs/heads/main/vless_lite.txt
+https://raw.githubusercontent.com/vahidwaspnew/test/refs/heads/main/Cloudzy.txt
