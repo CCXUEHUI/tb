@@ -1,3 +1,1 @@
 https://raw.githubusercontent.com/topgoodness/sub/refs/heads/main/i
-https://raw.githubusercontent.com/tonygyf/cmliu/refs/heads/master/output/base64.txt
-https://raw.githubusercontent.com/isummerice/GoodIP/refs/heads/main/TMIOE
